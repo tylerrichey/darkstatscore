@@ -1,25 +1,38 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using DarkStatsCore.Data;
 
 namespace DarkStatsCore
 {
     public class Program
     {
+        private static string _listenUrl = "http://*:6677";
+        
         public static void Main(string[] args)
         {
+            if (args.Length == 1)
+            {
+                _listenUrl = args[0];
+                Console.WriteLine("Using listen address: " + _listenUrl);
+            }
+            using (var context = new DarkStatsDbContext())
+            {
+                context.Database.Migrate();
+                var settings = new SettingsLib(context);
+                if (!settings.InvalidSettings)
+                {
+                    Scraper.StartScrapeTimer(settings.SaveTime, settings.Url);
+                }
+            }
             BuildWebHost(args).Run();
         }
 
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>()
-                .Build();
+                   .UseUrls(_listenUrl)
+                   .UseStartup<Startup>()
+                   .Build();        
     }
 }

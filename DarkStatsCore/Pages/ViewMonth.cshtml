@@ -1,4 +1,91 @@
 ﻿@page
 @model ViewMonthModel
 @{
+    ViewData["Title"] = "Totals";
 }
+
+<div class="table-responsive">
+  <table class="table table-condensed">
+        <thead>
+          <tr>
+            <th>Totals For</th>
+            <th>Total</th>
+            <th>Average Speed</th>
+          </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>@Model.TrafficTotals.EffectiveDates</td>
+                <td>
+                    <a href="#" data-toggle="tooltip" data-container="body" title="In: @(Model.TrafficTotals.In)<br>Out: @Model.TrafficTotals.Out">@Model.TrafficTotals.Total</a>
+                </td>
+                <td id="monthspeed">@Model.ViewingMonthSpeed</td>
+            </tr>
+        </tbody>
+  </table>
+</div>
+
+<style>
+.ct-label {
+    font-size: 12px;
+    white-space: nowrap;
+}
+</style>
+<div class="row">
+    <div class="col-sm-8">
+        <div class="ct-chart ct-golden-section"></div>
+    </div>
+    <div class="col-sm-4 table-responsive">
+        <table class="table table-condensed table-hover">
+			<thead>
+              <tr>
+                <th>Host</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.TrafficStatsModel)
+                {
+                <tr>
+                    <td>
+                        <a href="#" data-toggle="tooltip" data-container="body" title="@item.Tooltip">@item.Hostname</a>
+                    </td>
+                    <td>
+                        <a href="#" data-toggle="tooltip" data-container="body" title="In: @(item.In)<br>Out: @item.Out">@item.Total</a>
+                    </td>
+                </tr>
+                }
+            </tbody>
+		</table>
+    </div>
+</div>
+
+<script src="~/lib/chartist/dist/chartist.min.js"></script>
+
+<script>
+    var data = {
+	  labels: [ @Html.Raw(string.Join(", ", Model.Graph.Select(g => "\"" + g.Date + "\""))) ],
+      series: [
+            [ @string.Join(", ", Model.Graph.Select(g => g.In)) ],
+	        [ @string.Join(", ", Model.Graph.Select(g => g.Out)) ]
+        ]
+    };
+    var options = {
+        stackBars: true,
+        axisY: {
+            offset: 80,
+            labelInterpolationFnc: function(value) {
+                return value + " GB";
+            }
+        }
+    };
+
+    var chart = new Chartist.Bar(".ct-chart", data, options)
+	    .on('draw', function(data) {
+	        if(data.type === 'bar') {
+	            data.element.attr({
+	                style: 'stroke-width: 30px'
+    	        });
+            }
+	    });
+</script>

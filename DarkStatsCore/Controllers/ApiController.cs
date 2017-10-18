@@ -3,17 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-
-// For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using DarkStatsCore.Data;
+using DarkStatsCore.Models;
 
 namespace DarkStatsCore.Controllers
 {
     public class ApiController : Controller
     {
-        // GET: /<controller>/
-        public IActionResult Index()
-        {
-            return View();
-        }
+        // private readonly DarkStatsDbContext _context;
+        // public ApiController(DarkStatsDbContext darkStatsDbContext)
+        // {
+        //     _context = darkStatsDbContext;
+        // }
+
+        // public IEnumerable<double> GetDeltas()
+        // {
+        //     var d = Scraper.Deltas.Select(s => s.BytesToBitsPs(Scraper.TimeSpanSinceLastCheck) / 1024.0 / 1024.0);
+        //     return d.Select(s => Math.Round(s, 2));
+        // }
+
+        // public DashboardModel GetDashboard()
+        // {
+        //     return _context.GetDashboard();
+        // }
     }
 }

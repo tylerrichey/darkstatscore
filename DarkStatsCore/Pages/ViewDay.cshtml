@@ -1,0 +1,103 @@
+
+@page
+@model ViewDayModel
+@{
+    ViewData["Title"] = "Day";
+}
+<script src="~/lib/jquery-ui/jquery-ui.js"></script>
+<script>
+  $( function() {
+    $( "#datepicker" ).datepicker(
+        { 
+            minDate: @Html.Raw("\"" + Model.MinDay.ToString("MM/dd/yyyy") + "\""), 
+            maxDate: @Html.Raw("\"" + Model.MaxDay.ToString("MM/dd/yyyy") + "\"")
+        });
+  } );
+</script>
+
+<form class="form-horizontal" asp-controller="ViewDay" method="get">
+    <div class="form-group">
+        <label class="control-label col-sm-2" for="datepicker">Select A Day:</label>
+        <div class="col-sm-4">
+            <input class="form-control" name="Day" type="text" id="datepicker">
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-4">
+            <button class="btn btn-default" type="submit">Submit</button>
+        </div>
+    </div>
+</form>
+
+@if (Model.DaySelected)
+{
+    <style>
+    .ct-label {
+        font-size: 12px;
+        white-space: nowrap;
+    }
+    </style>
+    <p></p>
+    <div class="row">
+        <div class="col-sm-1"></div>
+        <div class="col-sm-10">
+            <div class="ct-chart ct-golden-section"></div>
+        </div>
+        <div class="col-sm-1"></div>
+    </div>
+    <div class="row">
+        <div class="col-sm-1"></div>
+        <div class="col-sm-10 table-responsive">   
+            <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th>Hour</th>
+                        <th>Total</th>
+                        <th>Top Consumers</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.DayData)
+                        {
+                        <tr>
+                            <td>@item.Hour</td>
+                            <td>@item.TotalBytes</td>
+                            <td>@Html.Raw(string.Join(" - ", item.TopConsumers.Select(c => c.Hostname + ": " + c.Total)))</td>
+                        </tr>
+                        }
+                </tbody>
+            </table>
+        </div>
+        <div class="col-sm-1"></div>
+    </div>
+
+    <script src="~/lib/chartist/dist/chartist.min.js"></script>
+
+    <script>
+        var data = {
+        labels: [ @Html.Raw(string.Join(", ", Model.DayData.Select(g => "\"" + g.Hour + "\""))) ],
+        series: [
+                [ @string.Join(", ", Model.DayData.Select(g => g.GraphBytesIn / 1024 / 1024 / 1024)) ],
+                [ @string.Join(", ", Model.DayData.Select(g => g.GraphBytesOut / 1024 / 1024 / 1024)) ]
+            ]
+        };
+        var options = {
+            stackBars: true,
+            axisY: {
+                offset: 80,
+                labelInterpolationFnc: function(value) {
+                    return value + " GB";
+                }
+            }
+        };
+
+        var chart = new Chartist.Bar(".ct-chart", data, options)
+            .on('draw', function(data) {
+                if(data.type === 'bar') {
+                    data.element.attr({
+                        style: 'stroke-width: 30px'
+                    });
+                }
+            });
+    </script>
+}

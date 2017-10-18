@@ -1,0 +1,35 @@
+﻿@page
+@model SettingsPageModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "Settings";
+}
+
+<form class="form-horizontal" method="POST">
+    <div asp-validation-summary="All"></div>
+  <div class="form-group">
+    <label class="control-label col-sm-2">Source URL:</label>
+    <div class="col-sm-6">
+      <input type="text" class="form-control" asp-for="SettingsModel.Url" placeholder="Enter base URL, i.e.: http://darkstats.local:667">
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-sm-2">Save Time (secs):</label>
+    <div class="col-sm-4"> 
+      <input type="text" class="form-control" asp-for="SettingsModel.SaveTime" aria-describedby="saveTimeHelp">
+      <small id="saveTimeHelp" class="form-text text-muted">Recommend: 5-60s</small>
+    </div>    
+  </div>
+  <div class="form-group">
+    <label class="control-label col-sm-2">Dashboard Refresh Time (ms):</label>
+    <div class="col-sm-4"> 
+      <input type="text" class="form-control" asp-for="SettingsModel.DashboardRefreshTime" aria-describedby="dashboardHelp">
+      <small id="dashboardHelp" class="form-text text-muted">Recommend 500-2000ms</small>
+    </div>
+  </div>
+  <div class="form-group"> 
+    <div class="col-sm-offset-2 col-sm-10">
+      <button type="submit" class="btn btn-default">Save</button>
+    </div>
+  </div>
+</form>

@@ -1,1 +1,14 @@
-﻿
+﻿@page
+@model PreviousMonthsModel
+@{
+    ViewData["Title"] = "Previous Months";
+}
+
+<h5>Previous Months:</h5>
+
+<div class="list-group">
+	@foreach (var item in Model.PreviousMonths)
+	{
+	    <a asp-page="/ViewMonth" asp-route-month=@(item.Month) asp-route-year=@(item.Year) class="list-group-item">@(item.ToString("MMMM, yyyy"))</a>
+	}
+</div>

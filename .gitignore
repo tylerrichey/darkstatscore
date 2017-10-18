@@ -6,6 +6,9 @@
 [Bb]in/
 packages/
 TestResults/
+db/
+node_modules/
+wwwroot/
 
 # globs
 Makefile.in
