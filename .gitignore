@@ -8,7 +8,7 @@ packages/
 TestResults/
 db/
 node_modules/
-wwwroot/
+**/wwwroot/lib/
 
 # globs
 Makefile.in
