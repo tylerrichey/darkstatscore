@@ -18,28 +18,20 @@ namespace DarkStatsCore.Data
         public static DateTime LastGathered = DateTime.MinValue;
         public static TimeSpan TimeSpanSinceLastCheck = TimeSpan.FromSeconds(0);
         public static double ScrapeTimeAvg => _scrapeTime.Count() == 0 ? 0 : _scrapeTime.Average();
+        public static EventHandler ScrapeSaved;
         private static Timer _dataTimer;
         private static List<long> _scrapeTime = new List<long>();
         private const int _scrapeTimeToKeep = 60;
         private static long _lastCheckTotalBytes = 0;
         private static int _deltasToKeep = 30;
         private static List<HostPadding> _hostPadding = new List<HostPadding>();        
+        private static HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromMilliseconds(200) }; 
 
         public static void Scrape(string url)
         {
             var context = new DarkStatsDbContext();
             context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-
-            List<TrafficStats> stats;
-            if (DashboardScrape.IsTimerActive && DashboardScrape.LastTrafficStats.TryPeek(out stats))
-            {
-                Console.Write("Cached... ");
-                DashboardScrape.LastTrafficStats.Clear();
-            }
-            else
-            {
-                stats = ScrapeData(url); 
-            }
+            var stats = ScrapeData(url);
 
             if (stats.Count() == 0)
             {
@@ -147,6 +139,10 @@ namespace DarkStatsCore.Data
             var now = DateTime.Now;
             TimeSpanSinceLastCheck = now.Subtract(LastGathered);
             LastGathered = now;
+            if (DashboardScrape.IsTimerActive)
+            {
+                ScrapeSaved(null, EventArgs.Empty);
+            }
             context.Dispose();
         }
 
@@ -185,12 +181,7 @@ namespace DarkStatsCore.Data
 
         private static string GetHtml(string url)
         {
-            //Generally, this is not best practice, but the Timer task was causing
-            //a static HttpClient to leave sockets open in TIME_WAIT. This doesn't.
-            using (var httpClient = new HttpClient { Timeout = TimeSpan.FromMilliseconds(200) })
-            {
-                return httpClient.GetStringAsync(url + @"hosts/?full=yes&sort=total").Result;
-            }
+            return _httpClient.GetStringAsync(url + @"hosts/?full=yes&sort=total").Result;
         }
 
         public static void StartScrapeTimer(TimeSpan saveTime, string url, bool delayStart = true)

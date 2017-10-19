@@ -86,6 +86,11 @@
 
 	let connection = new signalR.HubConnection("/dashboard");
     connection.start().then(function () {
+	    connection.invoke("GetDashboard").then(function (dashboard) {
+            processDashboardStream(dashboard);
+        });
+	})
+	.then(function () {
 	    connection.invoke("GetCurrentDeltas").then(function (deltas) {
 	        $.each(deltas, function(index, value) {
 				if (value > 0)
@@ -96,19 +101,14 @@
 	        });
 	        chart.update();
 	    });
-	})
-	.then(function () {
-	    connection.stream("GetDashboard").subscribe({
-            close: false,
-            next: processDashboardStream,
-            error: function (err) {
-                logger.log(err);
-            }
-        });
 	});
 
 	connection.on("GetLiveDeltas", function(deltas) {
 		processDeltasStream(deltas);
+	});
+
+	connection.on("GetCurrentDashboard", function(dashboard) {
+		processDashboardStream(dashboard);
 	});
 
 	function processDashboardStream(dashboard) {

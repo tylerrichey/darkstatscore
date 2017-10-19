@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Channels;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using DarkStatsCore.Data;
 using DarkStatsCore.Models;
 
@@ -29,6 +30,8 @@ namespace DarkStatsCore.SignalR
             _settings = settings;
             _clients = clients;
             DashboardScrape.DataGathered += DataGatheredEvent;
+            Scraper.ScrapeSaved += ScrapeSavedEvent;
+            _context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
         }
 
         public void AddConnected()
@@ -65,23 +68,14 @@ namespace DarkStatsCore.SignalR
             }
         }
 
-        public IObservable<DashboardModel> GetDashboard()
-        {
-            var saveTime = _settings.SaveTime;
-            return Observable.Create(
-                async (IObserver<DashboardModel> observer) =>
-                {
-                    while (_shouldStream)
-                    {
-                        observer.OnNext(GetDashboardModel());
-                        await Task.Delay(saveTime);
-                    }
-                });
-        }
-
         public IEnumerable<long> GetCurrentDeltas()
         {
             return Scraper.Deltas;
+        }
+
+        public DashboardModel GetCurrentDashboard()
+        {
+            return GetDashboardModel();
         }
 
         private HostDeltasModel GetLiveDeltas()
@@ -96,6 +90,11 @@ namespace DarkStatsCore.SignalR
                                             Speed = h.LastCheckDeltaBytes
                                         })
             };
+        }
+
+        private void ScrapeSavedEvent(object sender, EventArgs e)
+        {
+            _clients.Clients.All.InvokeAsync("GetCurrentDashboard", GetDashboardModel()).Wait();
         }
 
         private void DataGatheredEvent(object sender, EventArgs e)

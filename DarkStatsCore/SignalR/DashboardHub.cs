@@ -33,9 +33,9 @@ namespace DarkStatsCore.SignalR
             return _dashboard.GetCurrentDeltas();
         }
 
-        public IObservable<DashboardModel> GetDashboard()
+        public DashboardModel GetDashboard()
 		{
-            return _dashboard.GetDashboard();
+            return _dashboard.GetCurrentDashboard();
 		}
     }
 }

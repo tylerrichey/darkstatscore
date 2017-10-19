@@ -20,7 +20,6 @@ namespace DarkStatsCore.Data
             } 
         }
         public static bool IsTimerActive => _scrapeTimer != null;
-        public static ConcurrentStack<List<TrafficStats>> LastTrafficStats { get; internal set; }
         public static EventHandler DataGathered;
         public static double ElapsedMs = 0;
         private static List<HostDelta> _dashboardDeltas = new List<HostDelta>();
@@ -28,13 +27,11 @@ namespace DarkStatsCore.Data
         private static TimeSpan _refreshTime;
         private static bool _updateEvent;
         private static DateTime _lastGathered = DateTime.Now;
-        private static readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
 
         public static void StartScrapeTimer(string url, TimeSpan refreshTime)
         {
             if (_scrapeTimer == null)
             {
-                LastTrafficStats = new ConcurrentStack<List<TrafficStats>>();
                 _refreshTime = refreshTime;
                 _updateEvent = false;
                 _scrapeTimer = new Timer(Scrape, url, TimeSpan.FromSeconds(0), refreshTime);
@@ -47,7 +44,6 @@ namespace DarkStatsCore.Data
             _scrapeTimer = null;
             _updateEvent = false;
             _dashboardDeltas = new List<HostDelta>();
-            LastTrafficStats = new ConcurrentStack<List<TrafficStats>>();
         }
 
         private static void Scrape(object url)
@@ -56,7 +52,6 @@ namespace DarkStatsCore.Data
             {
                 var traffic = Scraper.ScrapeData(url as string);
                 traffic.AdjustDeltas(_dashboardDeltas);
-                LastTrafficStats.Push(traffic);
                 ElapsedMs = DateTime.Now.Subtract(_lastGathered).TotalMilliseconds;
                 _lastGathered = DateTime.Now;
                 if (_updateEvent)
