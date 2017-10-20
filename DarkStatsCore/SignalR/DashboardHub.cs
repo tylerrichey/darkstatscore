@@ -33,9 +33,9 @@ namespace DarkStatsCore.SignalR
             return _dashboard.GetCurrentDeltas();
         }
 
-        public DashboardModel GetDashboard()
+        public async Task<DashboardModel> GetDashboard()
 		{
-            return _dashboard.GetCurrentDashboard();
+            return await _dashboard.GetCurrentDashboard();
 		}
     }
 }

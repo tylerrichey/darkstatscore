@@ -40,9 +40,7 @@ namespace DarkStatsCore.Pages
             _settings.SetSaveTime(SettingsModel.SaveTime);
             _settings.SetDashboardRefreshTime(SettingsModel.DashboardRefreshTime);
             _settings.SetUrl(SettingsModel.Url);
-            Scraper.StartScrapeTimer(_settings.SaveTime, _settings.Url, false);
-            //give time for first scrape before dashboard
-            Thread.Sleep(2000);
+            Scraper.StartScrapeTask(_settings.SaveTime, _settings.Url);
             return RedirectToPage("/Index");
         }
     }

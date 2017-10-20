@@ -9,6 +9,7 @@ TestResults/
 db/
 node_modules/
 **/wwwroot/lib/
+.vs/
 
 # globs
 Makefile.in

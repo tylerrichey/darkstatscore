@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using HtmlAgilityPack;
 using Microsoft.EntityFrameworkCore;
@@ -19,13 +20,13 @@ namespace DarkStatsCore.Data
         public static TimeSpan TimeSpanSinceLastCheck = TimeSpan.FromSeconds(0);
         public static double ScrapeTimeAvg => _scrapeTime.Count() == 0 ? 0 : _scrapeTime.Average();
         public static EventHandler ScrapeSaved;
-        private static Timer _dataTimer;
         private static List<long> _scrapeTime = new List<long>();
         private const int _scrapeTimeToKeep = 60;
         private static long _lastCheckTotalBytes = 0;
         private static int _deltasToKeep = 30;
         private static List<HostPadding> _hostPadding = new List<HostPadding>();        
-        private static HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromMilliseconds(200) }; 
+        private static HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromMilliseconds(200) };
+        private static Task _scrapeTask;
 
         public static void Scrape(string url)
         {
@@ -139,7 +140,7 @@ namespace DarkStatsCore.Data
             var now = DateTime.Now;
             TimeSpanSinceLastCheck = now.Subtract(LastGathered);
             LastGathered = now;
-            if (DashboardScrape.IsTimerActive)
+            if (DashboardScrape.IsTaskActive)
             {
                 ScrapeSaved(null, EventArgs.Empty);
             }
@@ -184,18 +185,24 @@ namespace DarkStatsCore.Data
             return _httpClient.GetStringAsync(url + @"hosts/?full=yes&sort=total").Result;
         }
 
-        public static void StartScrapeTimer(TimeSpan saveTime, string url, bool delayStart = true)
+        public static void StartScrapeTask(TimeSpan saveTime, string url) => _scrapeTask = ScrapeTask(url, saveTime);
+
+        private async static Task ScrapeTask(string url, TimeSpan saveTime)
         {
-            _dataTimer = new Timer(GatherData, url, (delayStart ? saveTime : TimeSpan.FromSeconds(0)), saveTime);
+            while (true)
+            {
+                GatherData(url);
+                await Task.Delay(saveTime);
+            }
         }
 
-        private static void GatherData(Object url)
+        private static void GatherData(string url)
         {
             Console.Write(DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss") + " - Gathering data... ");
             var stopwatch = Stopwatch.StartNew();
             try
             {
-                Scraper.Scrape(url as string);
+                Scraper.Scrape(url);
                 stopwatch.Stop();
                 Console.WriteLine("Done. (" + stopwatch.ElapsedMilliseconds + "ms)");
                 if (_scrapeTime.Count() == _scrapeTimeToKeep)

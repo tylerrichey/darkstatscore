@@ -23,6 +23,7 @@ namespace DarkStatsCore.SignalR
         private readonly DarkStatsDbContext _context;
         private readonly SettingsLib _settings;
         private IHubContext<DashboardHub> _clients;
+        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
         public Dashboard(DarkStatsDbContext darkStatsDbContext, SettingsLib settings, IHubContext<DashboardHub> clients)
         {
@@ -40,9 +41,9 @@ namespace DarkStatsCore.SignalR
             try
             {
                 _numConnected++;
-                if (!DashboardScrape.IsTimerActive)
+                if (!DashboardScrape.IsTaskActive)
                 {
-                    DashboardScrape.StartScrapeTimer(_settings.Url, _settings.DashboardRefreshTime);
+                    DashboardScrape.StartDashboardScrapeTask(_settings.Url, _settings.DashboardRefreshTime, _cancellationTokenSource.Token);
                 }
             }
             finally
@@ -59,7 +60,7 @@ namespace DarkStatsCore.SignalR
                 _numConnected--;
                 if (_numConnected == 0)
                 {
-                    DashboardScrape.StopScrapeTimer();
+                    _cancellationTokenSource.Cancel();
                 }
             }
             finally
@@ -73,9 +74,9 @@ namespace DarkStatsCore.SignalR
             return Scraper.Deltas;
         }
 
-        public DashboardModel GetCurrentDashboard()
+        public async Task<DashboardModel> GetCurrentDashboard()
         {
-            return GetDashboardModel();
+            return await GetDashboardModel();
         }
 
         private HostDeltasModel GetLiveDeltas()
@@ -102,14 +103,14 @@ namespace DarkStatsCore.SignalR
             _clients.Clients.All.InvokeAsync("GetLiveDeltas", GetLiveDeltas()).Wait();
         }
 
-        private DashboardModel GetDashboardModel()
+        private async Task<DashboardModel> GetDashboardModel()
         {
             var dashboard = new DashboardModel
             {
                 LastGathered = Scraper.LastGathered.ToString("MM/dd/yyyy hh:mm:ss tt"),
                 ScrapeTimeAvg = Scraper.ScrapeTimeAvg
             };
-			var traffic = _context.TrafficStats
+			var traffic = await _context.TrafficStats
                                   .Where(t => t.Day.Month == DateTime.Now.Month && t.Day.Year == DateTime.Now.Year)
                                   .Select(t => new
                                   {
@@ -117,7 +118,7 @@ namespace DarkStatsCore.SignalR
                                       t.In,
                                       t.Out
                                   })
-                                  .ToList();
+                                  .ToListAsync();
             dashboard.CurrentHour = traffic.Where(t => t.Day == CurrentHour)
                                       .Sum(t => t.In + t.Out)
                                       .BytesToBitsPsToString(DateTime.Now.Subtract(CurrentHour));

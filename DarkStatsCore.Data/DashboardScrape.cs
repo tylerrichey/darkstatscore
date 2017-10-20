@@ -10,41 +10,36 @@ namespace DarkStatsCore.Data
 {
     public static class DashboardScrape
     {
-        public static List<HostDelta> Deltas 
-        { 
-            get
-            {
-                return _dashboardDeltas.Where(h => h.LastCheckDeltaBytes > 0)
+        public static List<HostDelta> Deltas => _dashboardDeltas.Where(h => h.LastCheckDeltaBytes > 0)
                                 .OrderByDescending(h => h.LastCheckDeltaBytes)
                                 .ToList();
-            } 
-        }
-        public static bool IsTimerActive => _scrapeTimer != null;
+        public static bool IsTaskActive => _scrapeTask == null ? false : _scrapeTask.Status == TaskStatus.Running;
         public static EventHandler DataGathered;
         public static double ElapsedMs = 0;
         private static List<HostDelta> _dashboardDeltas = new List<HostDelta>();
-        private static Timer _scrapeTimer;
-        private static TimeSpan _refreshTime;
         private static bool _updateEvent;
         private static DateTime _lastGathered = DateTime.Now;
+        private static Task _scrapeTask;
 
-        public static void StartScrapeTimer(string url, TimeSpan refreshTime)
+        public static void StartDashboardScrapeTask(string url, TimeSpan refreshTime, CancellationToken cancellationToken)
         {
-            if (_scrapeTimer == null)
-            {
-                _refreshTime = refreshTime;
+            if (!IsTaskActive)
+            {   
                 _updateEvent = false;
-                _scrapeTimer = new Timer(Scrape, url, TimeSpan.FromSeconds(0), refreshTime);
+                _scrapeTask = ExecuteScrapeTask(url, refreshTime, cancellationToken);
             }
         }
-
-        public static void StopScrapeTimer()
+        
+        private async static Task ExecuteScrapeTask(string url, TimeSpan refreshTime, CancellationToken cancellationToken)
         {
-            _scrapeTimer.Dispose();
-            _scrapeTimer = null;
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                Scrape(url);
+                await Task.Delay(refreshTime);
+            }
             _updateEvent = false;
             _dashboardDeltas = new List<HostDelta>();
-        }
+        }       
 
         private static void Scrape(object url)
         {
