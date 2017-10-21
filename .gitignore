@@ -10,6 +10,7 @@ db/
 node_modules/
 **/wwwroot/lib/
 .vs/
+.vscode/
 
 # globs
 Makefile.in

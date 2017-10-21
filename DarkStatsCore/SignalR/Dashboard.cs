@@ -23,7 +23,7 @@ namespace DarkStatsCore.SignalR
         private readonly DarkStatsDbContext _context;
         private readonly SettingsLib _settings;
         private IHubContext<DashboardHub> _clients;
-        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private CancellationTokenSource _cancellationTokenSource;
 
         public Dashboard(DarkStatsDbContext darkStatsDbContext, SettingsLib settings, IHubContext<DashboardHub> clients)
         {
@@ -43,6 +43,7 @@ namespace DarkStatsCore.SignalR
                 _numConnected++;
                 if (!DashboardScrape.IsTaskActive)
                 {
+                    _cancellationTokenSource = new CancellationTokenSource();
                     DashboardScrape.StartDashboardScrapeTask(_settings.Url, _settings.DashboardRefreshTime, _cancellationTokenSource.Token);
                 }
             }
