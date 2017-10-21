@@ -25,7 +25,7 @@ namespace DarkStatsCore.Data
         private static long _lastCheckTotalBytes = 0;
         private static int _deltasToKeep = 30;
         private static List<HostPadding> _hostPadding = new List<HostPadding>();        
-        private static HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromMilliseconds(200) };
+        //private static HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromMilliseconds(200) };
         private static Task _scrapeTask;
 
         public static void Scrape(string url)
@@ -182,7 +182,11 @@ namespace DarkStatsCore.Data
 
         private static string GetHtml(string url)
         {
-            return _httpClient.GetStringAsync(url + @"hosts/?full=yes&sort=total").Result;
+            //static HttpClient seems to be leaving sockets open for some reason
+            using (var httpClient = new HttpClient { Timeout = TimeSpan.FromMilliseconds(200) })
+            { 
+                return httpClient.GetStringAsync(url + @"hosts/?full=yes&sort=total").Result;
+            }
         }
 
         public static void StartScrapeTask(TimeSpan saveTime, string url) => _scrapeTask = ScrapeTask(url, saveTime);
