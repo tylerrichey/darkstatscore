@@ -28,6 +28,7 @@ cd darkstatscore
 dotnet restore
 cd DarkStatsCore
 bower install
+mkdir db
 dotnet run <optional argument to specify a different port, i.e., http://*:8080>
 ```
 
