@@ -3,6 +3,8 @@ A bandwidth monitoring tool in ASP.NET Core.
 
 [![Docker Automated buil](https://img.shields.io/docker/automated/tylerrichey/darkstatscore.svg)](https://hub.docker.com/r/tylerrichey/darkstatscore/)
 [![Docker Build Statu](https://img.shields.io/docker/build/tylerrichey/darkstatscore.svg)](https://hub.docker.com/r/tylerrichey/darkstatscore/)
+[![GitHub release](https://img.shields.io/github/release/tylerrichey/darkstatscore.svg)]()
+[![GitHub tag](https://img.shields.io/github/tag/tylerrichey/darkstatscore.svg)]()
 
 ![darkstatscore](https://user-images.githubusercontent.com/11445915/31852482-56177398-b646-11e7-9e30-784382b18eca.png)
 
