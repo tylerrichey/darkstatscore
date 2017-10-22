@@ -25,7 +25,6 @@ namespace DarkStatsCore.Data
         private static long _lastCheckTotalBytes = 0;
         private static int _deltasToKeep = 30;
         private static List<HostPadding> _hostPadding = new List<HostPadding>();        
-        //private static HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromMilliseconds(200) };
         private static Task _scrapeTask;
 
         public static void Scrape(string url)

@@ -71,7 +71,7 @@ namespace DarkStatsCore.Pages
             }
             else
             {
-                ViewingMonthSpeed = _context.GetSpeedForMonth(month, year);
+                ViewingMonthSpeed = GetSpeedForMonth(month, year);
                 var traffic = _context.TrafficStats
                                       .Where(t => t.Day.Month == month && t.Day.Year == year);
                 TrafficTotals = new TotalsModel
@@ -89,7 +89,7 @@ namespace DarkStatsCore.Pages
                                .GroupBy(t => t.Day.Day)
                                .Select(t => new TotalGraphModel
                                {
-                                   Date = t.First().Day.ToString("M/d"),
+                                   Date = t.First().Day.ToString("dd"),
                                    In = Math.Round(t.Sum(g => g.In) / 1024.0 / 1024.0 / 1024.0),
                                    Out = Math.Round(t.Sum(g => g.Out) / 1024.0 / 1024.0 / 1024.0)
                                });
@@ -105,6 +105,14 @@ namespace DarkStatsCore.Pages
             }
             tooltip = tooltip + "MAC: " + t.Mac + "<br>Last Seen: " + t.LastSeen;
             return tooltip;
+        }
+
+        private string GetSpeedForMonth(int month, int year)
+        {
+            var traffic = _context.TrafficStats
+                                 .Where(t => t.Day.Month == month && t.Day.Year == year);
+            return traffic.Sum(t => t.In + t.Out)
+                .BytesToBitsPsToString(traffic.Max(t => t.Day).Subtract(traffic.Min(t => t.Day)));
         }
     }
 }

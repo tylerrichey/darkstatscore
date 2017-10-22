@@ -1,10 +1,4 @@
 ﻿using System;
-using System.Linq;
-using System.Net.Http;
-using System.Collections.Generic;
-using DarkStatsCore.Data;
-using DarkStatsCore.Data.Models;
-using DarkStatsCore.Models;
 
 namespace DarkStatsCore
 {
@@ -40,35 +34,6 @@ namespace DarkStatsCore
         public static double BytesToBitsPs(this long bytes, TimeSpan ts)
         {
             return bytes * 8 / ts.TotalSeconds;
-        }
-
-        public static string GetSpeedForMonth(this DarkStatsDbContext context, int month, int year)
-        {
-			var traffic = context.TrafficStats
-                                 .Where(t => t.Day.Month == month && t.Day.Year == year);
-			return traffic.Sum(t => t.In + t.Out)
-				.BytesToBitsPsToString(traffic.Max(t => t.Day).Subtract(traffic.Min(t => t.Day)));
-        }
-
-        public static IEnumerable<DayDataModel> GetDayData(this DarkStatsDbContext context, int month, int year, int day)
-        {
-            var dayRequested = new DateTime(year, month, day);
-            return context.TrafficStats
-                        .Where(t => dayRequested == new DateTime(t.Day.Year, t.Day.Month, t.Day.Day))
-                        .GroupBy(t => t.Day)
-                        .Select(t => new DayDataModel
-                        {
-                            Hour = t.Key.ToString("h tt"),
-                            TotalBytes = t.Sum(c => c.In + c.Out).BytesToString(),
-                            GraphBytesIn = t.Sum(c => c.In),
-                            GraphBytesOut = t.Sum(c => c.Out),
-                            TopConsumers = t.OrderByDescending(c => c.Out + c.In)
-                                            .Select(c => new TrafficStatsModel
-                                            {
-                                                Hostname = c.Hostname,
-                                                Total = (c.Out + c.In).BytesToString()
-                                            }).Take(3)
-                        });
         }
     }
 }
