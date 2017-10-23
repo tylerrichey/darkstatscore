@@ -96,7 +96,7 @@ namespace DarkStatsCore.SignalR
 
         private void ScrapeSavedEvent(object sender, EventArgs e)
         {
-            _clients.Clients.All.InvokeAsync("GetCurrentDashboard", GetDashboardModel()).Wait();
+            _clients.Clients.All.InvokeAsync("GetCurrentDashboard", GetDashboardModel().Result).Wait();
         }
 
         private void DataGatheredEvent(object sender, EventArgs e)

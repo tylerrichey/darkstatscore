@@ -162,7 +162,7 @@ namespace DarkStatsCore.Data
             var data = new HtmlDocument();
             data.LoadHtml(rawData);
 
-            return data.DocumentNode
+            var trafficStats = data.DocumentNode
                        .Descendants("tr")
                        .Select(x => x.Elements("td"))
                        .Where(x => x.Count() == 7)
@@ -177,6 +177,8 @@ namespace DarkStatsCore.Data
                            Day = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, 0, 0)
                        })
                        .ToList();
+            trafficStats.ForEach(DnsService.GetHostName);
+            return trafficStats;
         }
 
         private static string GetHtml(string url)
@@ -188,7 +190,11 @@ namespace DarkStatsCore.Data
             }
         }
 
-        public static void StartScrapeTask(TimeSpan saveTime, string url) => _scrapeTask = ScrapeTask(url, saveTime);
+        public static void StartScrapeTask(TimeSpan saveTime, string url)
+        {
+            _scrapeTask = ScrapeTask(url, saveTime);
+            DnsService.Start();
+        }
 
         private async static Task ScrapeTask(string url, TimeSpan saveTime)
         {

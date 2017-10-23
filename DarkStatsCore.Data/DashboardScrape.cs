@@ -13,7 +13,7 @@ namespace DarkStatsCore.Data
         public static List<HostDelta> Deltas => _dashboardDeltas.Where(h => h.LastCheckDeltaBytes > 0)
                                 .OrderByDescending(h => h.LastCheckDeltaBytes)
                                 .ToList();
-        public static bool IsTaskActive => _scrapeTask == null ? false : _scrapeTask.Status == TaskStatus.Running;
+        public static bool IsTaskActive => _scrapeTask == null ? false : true;
         public static EventHandler DataGathered;
         public static double ElapsedMs = 0;
         private static List<HostDelta> _dashboardDeltas = new List<HostDelta>();
@@ -24,7 +24,8 @@ namespace DarkStatsCore.Data
         public static void StartDashboardScrapeTask(string url, TimeSpan refreshTime, CancellationToken cancellationToken)
         {
             if (!IsTaskActive)
-            {   
+            {
+                Console.WriteLine(DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss") + " - Starting dashboard scrape...");
                 _updateEvent = false;
                 _scrapeTask = ExecuteScrapeTask(url, refreshTime, cancellationToken);
             }
@@ -39,13 +40,15 @@ namespace DarkStatsCore.Data
             }
             _updateEvent = false;
             _dashboardDeltas = new List<HostDelta>();
+            _scrapeTask = null;
+            Console.WriteLine(DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss") + " - Dashboard scrape stopped.");
         }       
 
-        private static void Scrape(object url)
+        private static void Scrape(string url)
         {
             try
             {
-                var traffic = Scraper.ScrapeData(url as string);
+                var traffic = Scraper.ScrapeData(url);
                 traffic.AdjustDeltas(_dashboardDeltas);
                 ElapsedMs = DateTime.Now.Subtract(_lastGathered).TotalMilliseconds;
                 _lastGathered = DateTime.Now;

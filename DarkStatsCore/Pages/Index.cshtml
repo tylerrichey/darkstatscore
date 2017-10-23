@@ -111,7 +111,7 @@
 		processDashboardStream(dashboard);
 	});
 
-	function processDashboardStream(dashboard) {
+    function processDashboardStream(dashboard) {
         $("#monthstring").html(dashboard.CurrentMonthString);
         $("#lastgathered").html(dashboard.LastGathered);
         $("#scrapetimeavg").html(Math.round(dashboard.ScrapeTimeAvg));
@@ -166,8 +166,8 @@
 	    for (i = 0; i < suffix.length && bytes >= 1024; i++)
     	{
 	        newBytes = bytes / 1024;
-	        bytes = bytes / 1024;
-    	}
+            bytes = bytes / 1024;
+        }
 	    return newBytes.toFixed(2) + " " + suffix[i];
 	}
 
