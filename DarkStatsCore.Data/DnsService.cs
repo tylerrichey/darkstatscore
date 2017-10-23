@@ -24,8 +24,9 @@ namespace DarkStatsCore.Data
 
         public static string GetHostName(string ip, string hostName)
         {
+            var _hostName = hostName;
             _hosts.TryGetValue(ip, out hostName);
-            return hostName;
+            return hostName ?? _hostName;
         }
 
         private static async Task DnsTask()
