@@ -174,7 +174,7 @@ namespace DarkStatsCore.Data
                        .Select(x => new TrafficStats
                        {
                            Ip = x.ElementAt(0).InnerText,
-                           Hostname = x.ElementAt(1).InnerText,
+                           Hostname = DnsService.GetHostName(x.ElementAt(0).InnerText, x.ElementAt(1).InnerText),
                            Mac = x.ElementAt(2).InnerText,
                            In = Convert.ToInt64(x.ElementAt(3).InnerText.Replace(",", "")),
                            Out = Convert.ToInt64(x.ElementAt(4).InnerText.Replace(",", "")),

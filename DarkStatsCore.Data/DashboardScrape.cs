@@ -12,13 +12,6 @@ namespace DarkStatsCore.Data
     {
         public static List<HostDelta> Deltas => _dashboardDeltas.Where(h => h.LastCheckDeltaBytes > 0)
             .OrderByDescending(h => h.LastCheckDeltaBytes)
-            .Select(h => new HostDelta
-            {
-                Ip = h.Ip,
-                Hostname = DnsService.GetHostName(h.Ip, h.Hostname),
-                LastCheckDeltaBytes = h.LastCheckDeltaBytes,
-                LastCheckTotalBytes = h.LastCheckTotalBytes
-            })
             .ToList();
         public static bool IsTaskActive => _scrapeTask == null ? false : true;
         public static EventHandler DataGathered;
