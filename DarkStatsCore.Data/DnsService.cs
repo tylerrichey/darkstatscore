@@ -17,16 +17,15 @@ namespace DarkStatsCore.Data
 
         public static void GetHostName(TrafficStats trafficStats)
         {
-            if (!string.IsNullOrEmpty(trafficStats.Hostname) && trafficStats.Hostname != "(none)")
-            {
-                return;
-            }
-            else
-            {
-                string hostName;
-                _hosts.TryGetValue(trafficStats.Ip, out hostName);
-                trafficStats.Hostname = string.IsNullOrEmpty(hostName) ? trafficStats.Hostname : hostName;
-            }
+            string hostName;
+            _hosts.TryGetValue(trafficStats.Ip, out hostName);
+            trafficStats.Hostname = string.IsNullOrEmpty(hostName) ? trafficStats.Hostname : hostName;
+        }
+
+        public static string GetHostName(string ip, string hostName)
+        {
+            _hosts.TryGetValue(ip, out hostName);
+            return hostName;
         }
 
         private static async Task DnsTask()
@@ -52,7 +51,7 @@ namespace DarkStatsCore.Data
             }
             try
             {
-                var host = await Dns.GetHostEntryAsync(ip);
+                var host = await System.Net.Dns.GetHostEntryAsync(ip);
                 var hostName = host.HostName;
                 if (!string.IsNullOrEmpty(hostName))
                 {

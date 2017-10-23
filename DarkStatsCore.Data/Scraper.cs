@@ -26,6 +26,7 @@ namespace DarkStatsCore.Data
         private static int _deltasToKeep = 30;
         private static List<HostPadding> _hostPadding = new List<HostPadding>();        
         private static Task _scrapeTask;
+        private static Dictionary<string, string> _dnsHosts = new Dictionary<string, string>();
 
         public static void Scrape(string url)
         {
@@ -97,6 +98,10 @@ namespace DarkStatsCore.Data
 
             foreach (var s in stats)
             {
+                if (string.IsNullOrEmpty(s.Hostname) || s.Hostname == "(none)")
+                {
+                    DnsService.GetHostName(s);
+                }
                 var last = lastRecords.FirstOrDefault(t => t.Ip == s.Ip);
                 if (last == null)
                 {
@@ -177,7 +182,6 @@ namespace DarkStatsCore.Data
                            Day = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, 0, 0)
                        })
                        .ToList();
-            trafficStats.ForEach(DnsService.GetHostName);
             return trafficStats;
         }
 
@@ -195,7 +199,7 @@ namespace DarkStatsCore.Data
             _scrapeTask = ScrapeTask(url, saveTime);
             DnsService.Start();
         }
-
+        
         private async static Task ScrapeTask(string url, TimeSpan saveTime)
         {
             while (true)

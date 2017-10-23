@@ -11,8 +11,15 @@ namespace DarkStatsCore.Data
     public static class DashboardScrape
     {
         public static List<HostDelta> Deltas => _dashboardDeltas.Where(h => h.LastCheckDeltaBytes > 0)
-                                .OrderByDescending(h => h.LastCheckDeltaBytes)
-                                .ToList();
+            .OrderByDescending(h => h.LastCheckDeltaBytes)
+            .Select(h => new HostDelta
+            {
+                Ip = h.Ip,
+                Hostname = DnsService.GetHostName(h.Ip, h.Hostname),
+                LastCheckDeltaBytes = h.LastCheckDeltaBytes,
+                LastCheckTotalBytes = h.LastCheckTotalBytes
+            })
+            .ToList();
         public static bool IsTaskActive => _scrapeTask == null ? false : true;
         public static EventHandler DataGathered;
         public static double ElapsedMs = 0;
@@ -20,6 +27,7 @@ namespace DarkStatsCore.Data
         private static bool _updateEvent;
         private static DateTime _lastGathered = DateTime.Now;
         private static Task _scrapeTask;
+        private static Dictionary<string, string> _dnsHosts;
 
         public static void StartDashboardScrapeTask(string url, TimeSpan refreshTime, CancellationToken cancellationToken)
         {
@@ -30,7 +38,7 @@ namespace DarkStatsCore.Data
                 _scrapeTask = ExecuteScrapeTask(url, refreshTime, cancellationToken);
             }
         }
-        
+
         private async static Task ExecuteScrapeTask(string url, TimeSpan refreshTime, CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
