@@ -2,7 +2,7 @@
 using System.Net;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Concurrent;
 
 namespace DarkStatsCore.Data
@@ -35,9 +35,10 @@ namespace DarkStatsCore.Data
             {
                 Console.WriteLine(DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss") + " - Running DNS service...");
                 var currentHour = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, 0, 0);
-                var lookups = _context.TrafficStats
+                var lookups = await _context.TrafficStats
                         .Where(t => t.Day == currentHour && t.Ip != "::")
-                        .Select(t => TryGetHostName(t.Ip));
+                        .Select(t => TryGetHostName(t.Ip))
+                        .ToListAsync();
                 await Task.WhenAll(lookups);
                 Console.WriteLine(DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss") + " - DNS service, successful lookups: " + lookups.Where(l => l.Result).Count() + " - failures: " + lookups.Where(l => !l.Result).Count());
                 await Task.Delay(TimeSpan.FromMinutes(15));

@@ -146,7 +146,7 @@ namespace DarkStatsCore.Data
             LastGathered = now;
             if (DashboardScrape.IsTaskActive)
             {
-                ScrapeSaved(null, EventArgs.Empty);
+                ScrapeSaved?.Invoke(null, EventArgs.Empty);
             }
             context.Dispose();
         }

@@ -80,28 +80,22 @@ namespace DarkStatsCore.SignalR
             return await GetDashboardModel();
         }
 
-        private HostDeltasModel GetLiveDeltas()
-        {
-            return new HostDeltasModel
-            {
-                ElapsedMs = DashboardScrape.ElapsedMs,
-                Deltas = DashboardScrape.Deltas
-                                        .Select(h => new HostDeltaModel
-                                        {
-                                            Hostname = (string.IsNullOrEmpty(h.Hostname) || h.Hostname == "(none)") ? h.Ip : h.Hostname,
-                                            Speed = h.LastCheckDeltaBytes
-                                        })
-            };
-        }
-
         private void ScrapeSavedEvent(object sender, EventArgs e)
         {
             _clients.Clients.All.InvokeAsync("GetCurrentDashboard", GetDashboardModel().Result).Wait();
         }
 
-        private void DataGatheredEvent(object sender, EventArgs e)
+        private void DataGatheredEvent(object sender, DashboardEventArgs e)
         {
-            _clients.Clients.All.InvokeAsync("GetLiveDeltas", GetLiveDeltas()).Wait();
+            _clients.Clients.All.InvokeAsync("GetLiveDeltas", new HostDeltasModel
+            {
+                ElapsedMs = e.ElapsedMs,
+                Deltas = e.HostDeltas.Select(h => new HostDeltaModel
+                {
+                    Hostname = (string.IsNullOrEmpty(h.Hostname) || h.Hostname == "(none)") ? h.Ip : h.Hostname,
+                    Speed = h.LastCheckDeltaBytes
+                })
+            }).Wait();
         }
 
         private async Task<DashboardModel> GetDashboardModel()

@@ -10,17 +10,12 @@ namespace DarkStatsCore.Data
 {
     public static class DashboardScrape
     {
-        public static List<HostDelta> Deltas => _dashboardDeltas.Where(h => h.LastCheckDeltaBytes > 0)
-            .OrderByDescending(h => h.LastCheckDeltaBytes)
-            .ToList();
         public static bool IsTaskActive => _scrapeTask == null ? false : true;
-        public static EventHandler DataGathered;
-        public static double ElapsedMs = 0;
+        public static EventHandler<DashboardEventArgs> DataGathered;
         private static List<HostDelta> _dashboardDeltas = new List<HostDelta>();
         private static bool _updateEvent;
         private static DateTime _lastGathered = DateTime.Now;
         private static Task _scrapeTask;
-        private static Dictionary<string, string> _dnsHosts;
 
         public static void StartDashboardScrapeTask(string url, TimeSpan refreshTime, CancellationToken cancellationToken)
         {
@@ -51,11 +46,14 @@ namespace DarkStatsCore.Data
             {
                 var traffic = Scraper.ScrapeData(url);
                 traffic.AdjustDeltas(_dashboardDeltas);
-                ElapsedMs = DateTime.Now.Subtract(_lastGathered).TotalMilliseconds;
+                var elapsedMs = DateTime.Now.Subtract(_lastGathered).TotalMilliseconds;
                 _lastGathered = DateTime.Now;
                 if (_updateEvent)
                 {
-                    DataGathered(null, EventArgs.Empty);
+                    var deltas = _dashboardDeltas.Where(h => h.LastCheckDeltaBytes > 0)
+                        .OrderByDescending(h => h.LastCheckDeltaBytes)
+                        .ToList();
+                    DataGathered?.Invoke(null, new DashboardEventArgs(deltas, elapsedMs));
                 }
                 else
                 {
