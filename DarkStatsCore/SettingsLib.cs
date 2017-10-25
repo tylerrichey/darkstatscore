@@ -18,7 +18,7 @@ public class SettingsLib
     {
         try
         {
-            return File.ReadAllText(fileName);
+            return File.ReadAllText(fileName).Replace(Environment.NewLine, string.Empty);
         }
         catch
         {
