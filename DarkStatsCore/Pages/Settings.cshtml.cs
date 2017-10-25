@@ -19,10 +19,7 @@ namespace DarkStatsCore.Pages
         public SettingsPageModel(SettingsLib settings)
         {
             _settings = settings;
-            if (!string.IsNullOrEmpty(_settings.Branch))
-            {
-                VersionInformation = "Docker Version - Branch: " + _settings.Branch + " Commit: " + _settings.Commit + " Image: " + _settings.ImageName;
-            }
+            VersionInformation = _settings.VersionInformation;
         }
 
         public void OnGet()

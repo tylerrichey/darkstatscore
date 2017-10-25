@@ -21,6 +21,11 @@ namespace DarkStatsCore
             {
                 context.Database.Migrate();
                 var settings = new SettingsLib(context);
+                Console.WriteLine("Starting DarkStatsCore...");
+                if (!string.IsNullOrEmpty(settings.VersionInformation))
+                {
+                    Console.WriteLine(settings.VersionInformation);
+                }
                 if (!settings.InvalidSettings)
                 {
                     Scraper.StartScrapeTask(settings.SaveTime, settings.Url);

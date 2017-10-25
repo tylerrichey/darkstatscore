@@ -12,6 +12,7 @@ public class SettingsLib
     public string Commit => GetFileString("COMMIT");
     public string Branch => GetFileString("BRANCH");
     public string ImageName => GetFileString("IMAGE_NAME");
+    public string VersionInformation => "Docker Version - Branch: " + Branch + " Commit: " + Commit + " Image: " + ImageName;
 
     private static string GetFileString(string fileName)
     {
