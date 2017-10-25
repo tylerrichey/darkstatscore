@@ -124,7 +124,6 @@
 	}
 
     function processDeltasStream(deltas) {
-        console.log("processing deltas");
 		var deltasToKeep = 30;
 		var chartLength = data.series[0].length;
 	    if (chartLength >= deltasToKeep)
@@ -164,11 +163,12 @@
 	    var suffix = [ "B", "KB", "MB", "GB" ];
 	    var i = 0;
 	    var newBytes = bytes;
-        for (i = 0; i < suffix.length && bytes >= 1048576; i++)
+        for (i = 0; i < suffix.length - 1 && bytes >= 1024; i++)
     	{
 	        newBytes = bytes / 1024;
             bytes = bytes / 1024;
         }
+        console.log(i);
 	    return newBytes.toFixed(2) + " " + suffix[i];
 	}
 
@@ -178,7 +178,7 @@
 	    var suffix = [ "bps", "Kbps", "Mbps", "Gbps" ];
 	    var i = 0;
 	    var newBits = bits;
-        for (i = 0; i < suffix.length && bits >= 1048576; i++)
+        for (i = 0; i < suffix.length - 1 && bits >= 1024; i++)
     	{
 	        newBits = bits / 1024;
 	        bits = bits / 1024;

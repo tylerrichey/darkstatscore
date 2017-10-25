@@ -13,11 +13,16 @@ namespace DarkStatsCore.Pages
     {
         [BindProperty]
         public SettingsModel SettingsModel { get; set; }
+        public string VersionInformation { get; internal set; }
         private readonly SettingsLib _settings;
 
         public SettingsPageModel(SettingsLib settings)
         {
             _settings = settings;
+            if (!string.IsNullOrEmpty(_settings.Branch))
+            {
+                VersionInformation = "Docker Version - Branch: " + _settings.Branch + " Commit: " + _settings.Commit + " Image: " + _settings.ImageName;
+            }
         }
 
         public void OnGet()

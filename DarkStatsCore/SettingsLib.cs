@@ -1,10 +1,7 @@
 using System;
 using System.Linq;
-using System.Threading;
-using System.Diagnostics;
-using System.Collections.Generic;
+using System.IO;
 using DarkStatsCore.Data;
-using Microsoft.EntityFrameworkCore;
 
 public class SettingsLib
 {
@@ -12,6 +9,22 @@ public class SettingsLib
     public string Url { get; internal set; }
     public TimeSpan SaveTime { get; internal set; }
     public TimeSpan DashboardRefreshTime { get; internal set; }
+    public string Commit => GetFileString("COMMIT");
+    public string Branch => GetFileString("BRANCH");
+    public string ImageName => GetFileString("IMAGE_NAME");
+
+    private static string GetFileString(string fileName)
+    {
+        try
+        {
+            return File.ReadAllText(fileName);
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
     private string _urlKey = "Url";
     private string _saveTimeKey = "SaveTime";
     private string _dashboardRefreshTimeKey = "DashboardRefreshTime";

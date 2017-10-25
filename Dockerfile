@@ -11,6 +11,9 @@ RUN cd DarkStatsCore && bower install --config.interactive=false
 COPY . .
 WORKDIR /source/DarkStatsCore
 RUN dotnet publish --output /app/ --configuration Release
+RUN echo $SOURCE_BRANCH >BRANCH
+RUN echo $SOURCE_COMMIT >COMMIT
+RUN echo $IMAGE_NAME >IMAGE_NAME
 
 FROM microsoft/aspnetcore:2
 ENV TZ=America/New_York
