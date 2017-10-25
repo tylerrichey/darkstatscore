@@ -123,7 +123,8 @@
         updateTotalsTooltip("#todaytotal", dashboard.CurrentDayTotalIn, dashboard.CurrentDayTotalOut);
 	}
 
-	function processDeltasStream(deltas) {
+    function processDeltasStream(deltas) {
+        console.log("processing deltas");
 		var deltasToKeep = 30;
 		var chartLength = data.series[0].length;
 	    if (chartLength >= deltasToKeep)
@@ -160,10 +161,10 @@
 
 	function bytesToString(bytes)
 	{
-	    var suffix = [ "B", "KB", "MB", "GB", "TB" ];
+	    var suffix = [ "B", "KB", "MB", "GB" ];
 	    var i = 0;
 	    var newBytes = bytes;
-	    for (i = 0; i < suffix.length && bytes >= 1024; i++)
+        for (i = 0; i < suffix.length && bytes >= 1048576; i++)
     	{
 	        newBytes = bytes / 1024;
             bytes = bytes / 1024;
@@ -174,10 +175,10 @@
 	function bytesToBitsPsToString(bytes, ms)
 	{
         var bits = bytesToBitsPs(bytes, ms);
-	    var suffix = [ "bps", "Kbps", "Mbps", "Gbps", "Tbps" ];
+	    var suffix = [ "bps", "Kbps", "Mbps", "Gbps" ];
 	    var i = 0;
 	    var newBits = bits;
-	    for (i = 0; i < suffix.length && bits >= 1024; i++)
+        for (i = 0; i < suffix.length && bits >= 1048576; i++)
     	{
 	        newBits = bits / 1024;
 	        bits = bits / 1024;

@@ -6,10 +6,10 @@ namespace DarkStatsCore
     {
         public static string BytesToString(this long bytes)
         {
-            string[] Suffix = { "B", "KB", "MB", "GB", "TB" };
+            string[] Suffix = { "B", "KB", "MB", "GB" };
             int i;
             double dblSByte = bytes;
-            for (i = 0; i < Suffix.Length && bytes >= 1024; i++, bytes /= 1024)
+            for (i = 0; i < Suffix.Length && bytes >= 1048576; i++, bytes /= 1024)
             {
                 dblSByte = bytes / 1024.0;
             }
@@ -20,10 +20,10 @@ namespace DarkStatsCore
         public static string BytesToBitsPsToString(this long bytes, TimeSpan ts)
         {
             double bits = bytes.BytesToBitsPs(ts);
-            string[] Suffix = { "bps", "Kbps", "Mbps", "Gbps", "Tbps" };
+            string[] Suffix = { "bps", "Kbps", "Mbps", "Gbps" };
             int i;
             double dblSBits = bits;
-            for (i = 0; i < Suffix.Length && bits >= 1024; i++, bits /= 1024)
+            for (i = 0; i < Suffix.Length && bits >= 1048576; i++, bits /= 1024)
             {
                 dblSBits = bits / 1024.0;
             }
