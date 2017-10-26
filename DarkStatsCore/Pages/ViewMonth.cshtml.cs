@@ -11,7 +11,7 @@ namespace DarkStatsCore.Pages
 {
     public class ViewMonthModel : PageModel
     {
-        public TotalsModel TrafficTotals { get; set; }
+        public TotalsModel TrafficTotals { get; internal set; }
         public IEnumerable<TrafficStatsModel> TrafficStatsModel;
         public IEnumerable<TotalGraphModel> Graph;
         public string ViewingMonthSpeed;
@@ -27,17 +27,15 @@ namespace DarkStatsCore.Pages
         {
             TrafficStatsModel = _context.TrafficStats
                                         .Where(t => allTime || (t.Day.Month == month && t.Day.Month == month))
-                                        .GroupBy(t => t.Ip)
+                                        .GroupBy(t => (string.IsNullOrEmpty(t.Hostname) || t.Hostname == "(none)") ? t.Ip : t.Hostname)
                                         .OrderByDescending(t => t.Sum(s => s.In + s.Out))
                                         .Select(t => new TrafficStatsModel
                                         {
-                                            Ip = t.First().Ip,
-                                            Hostname = (string.IsNullOrEmpty(t.First().Hostname) || t.First().Hostname == "(none)") ? t.Key : t.First().Hostname,
-                                            Mac = t.First().Mac,
+                                            Hostname = t.Key,
                                             In = t.Sum(s => s.In).BytesToString(),
                                             Out = t.Sum(s => s.Out).BytesToString(),
                                             Total = (t.Sum(s => s.In) + t.Sum(s => s.Out)).BytesToString(),
-                                            Tooltip = GetTooltip(t.First())
+                                            Tooltip = GetTooltip(t)
                                         });
 
             if (allTime)
@@ -96,14 +94,14 @@ namespace DarkStatsCore.Pages
             }
         }
 
-        private string GetTooltip(TrafficStats t)
+        private string GetTooltip(IEnumerable<TrafficStats> trafficStats)
         {
             var tooltip = string.Empty;
-            if (!string.IsNullOrEmpty(t.Hostname) && t.Hostname != "(none)")
+            if (trafficStats.Any(t => !string.IsNullOrEmpty(t.Hostname) && t.Hostname != "(none)"))
             {
-                tooltip = "IP: " + t.Ip + "<br>";
+                tooltip = "IP: " + string.Join(", ", trafficStats.Select(t => t.Ip).Distinct()) + "<br>";
             }
-            tooltip = tooltip + "MAC: " + t.Mac + "<br>Last Seen: " + t.LastSeen;
+            tooltip = tooltip + "MAC: " + string.Join(", ", trafficStats.Select(t => t.Mac).Distinct()) + "<br>Last Seen: " + trafficStats.Last().LastSeen;
             return tooltip;
         }
 
