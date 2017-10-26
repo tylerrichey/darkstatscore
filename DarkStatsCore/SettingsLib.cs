@@ -9,10 +9,7 @@ public class SettingsLib
     public string Url { get; internal set; }
     public TimeSpan SaveTime { get; internal set; }
     public TimeSpan DashboardRefreshTime { get; internal set; }
-    public string Commit => GetFileString("COMMIT");
-    public string Branch => GetFileString("BRANCH");
-    public string ImageName => GetFileString("IMAGE_NAME");
-    public string VersionInformation => "Docker Version - Branch: " + Branch + " Commit: " + Commit + " Image: " + ImageName;
+    public static string VersionInformation = GetFileString("BUILD_VERSION") ?? "Self compiled";
 
     private static string GetFileString(string fileName)
     {
@@ -22,7 +19,7 @@ public class SettingsLib
         }
         catch
         {
-            return string.Empty;
+            return null;
         }
     }
 

@@ -17,15 +17,11 @@ namespace DarkStatsCore
                 _listenUrl = args[0];
                 Console.WriteLine("Using listen address: " + _listenUrl);
             }
+            Console.WriteLine("Starting DarkStatsCore ({0})...", SettingsLib.VersionInformation);
             using (var context = new DarkStatsDbContext())
             {
                 context.Database.Migrate();
                 var settings = new SettingsLib(context);
-                Console.WriteLine("Starting DarkStatsCore...");
-                if (!string.IsNullOrEmpty(settings.VersionInformation))
-                {
-                    Console.WriteLine(settings.VersionInformation);
-                }
                 if (!settings.InvalidSettings)
                 {
                     Scraper.StartScrapeTask(settings.SaveTime, settings.Url);

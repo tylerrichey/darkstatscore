@@ -13,13 +13,11 @@ namespace DarkStatsCore.Pages
     {
         [BindProperty]
         public SettingsModel SettingsModel { get; set; }
-        public string VersionInformation { get; internal set; }
         private readonly SettingsLib _settings;
 
         public SettingsPageModel(SettingsLib settings)
         {
             _settings = settings;
-            VersionInformation = _settings.VersionInformation;
         }
 
         public void OnGet()
