@@ -13,6 +13,7 @@ public class SettingsLib
         {
             try
             {
+                InvalidSettings = false;
                 return GetSetting(_urlKey).StringValue;
             }
             catch
@@ -58,7 +59,7 @@ public class SettingsLib
     {
         try
         {
-            return File.ReadAllText(fileName).Replace(Environment.NewLine, string.Empty);
+            return File.ReadAllText(fileName).Replace(Environment.NewLine, string.Empty).Trim();
         }
         catch
         {
@@ -81,17 +82,6 @@ public class SettingsLib
             SetSaveTime(15);
             SetDashboardRefreshTime(1000);
         }
-        //try
-        //{
-        //    //SaveTime = TimeSpan.FromSeconds(GetSetting(_saveTimeKey).IntValue);
-        //    //DashboardRefreshTime = TimeSpan.FromMilliseconds(GetSetting(_dashboardRefreshTimeKey).DoubleValue);
-        //    //Url = GetSetting(_urlKey).StringValue;
-        //    InvalidSettings = false;
-        //}
-        //catch
-        //{
-        //    InvalidSettings = true;
-        //}
     }    
 
     private void SaveSetting(Settings setting)
@@ -121,7 +111,6 @@ public class SettingsLib
                 Name = _urlKey,
                 StringValue = filteredUrl
             });
-            //Url = filteredUrl;
         }
         catch (Exception e)
         {
@@ -138,7 +127,6 @@ public class SettingsLib
                 Name = _saveTimeKey,
                 IntValue = saveTime
             });
-            //SaveTime = TimeSpan.FromSeconds(saveTime);
         }
         catch (Exception e)
         {
@@ -155,7 +143,6 @@ public class SettingsLib
                 Name = _dashboardRefreshTimeKey,
                 DoubleValue = dashboardRefreshTime
             });
-            //DashboardRefreshTime = TimeSpan.FromMilliseconds(dashboardRefreshTime);
         }
         catch (Exception e)
         {
