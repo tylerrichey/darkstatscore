@@ -6,19 +6,17 @@ using Microsoft.EntityFrameworkCore;
 
 public class SettingsLib
 {
-    public bool InvalidSettings { get; internal set; }
+    public bool InvalidSettings => !string.IsNullOrEmpty(Url);
     public string Url
     {
         get
         {
             try
             {
-                InvalidSettings = false;
                 return GetSetting(_urlKey).StringValue;
             }
             catch
             {
-                InvalidSettings = true;
                 return string.Empty;
             }
         }
@@ -33,7 +31,6 @@ public class SettingsLib
             }
             catch
             {
-                InvalidSettings = true;
                 return TimeSpan.FromSeconds(60);
             }
         }
@@ -48,7 +45,6 @@ public class SettingsLib
             }
             catch
             {
-                InvalidSettings = true;
                 return TimeSpan.FromSeconds(1);
             }
         }
