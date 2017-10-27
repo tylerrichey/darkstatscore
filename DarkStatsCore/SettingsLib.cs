@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 public class SettingsLib
 {
-    public bool InvalidSettings => !string.IsNullOrEmpty(Url);
+    public bool InvalidSettings => string.IsNullOrEmpty(Url);
     public string Url
     {
         get
