@@ -13,7 +13,13 @@ namespace DarkStatsCore.Data
         private static DarkStatsDbContext _context = new DarkStatsDbContext();
         private static ConcurrentDictionary<string, string> _hosts = new ConcurrentDictionary<string, string>();
 
-        public static void Start() => _dnsTask = DnsTask();
+        public static void Start()
+        {
+            if (_dnsTask == null)
+            {
+                _dnsTask = DnsTask();
+            }
+        }
 
         public static void GetHostName(TrafficStats trafficStats)
         {

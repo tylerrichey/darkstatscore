@@ -26,7 +26,7 @@ namespace DarkStatsCore.Data
         private static int _deltasToKeep = 30;
         private static List<HostPadding> _hostPadding = new List<HostPadding>();        
         private static Task _scrapeTask;
-        private static Dictionary<string, string> _dnsHosts = new Dictionary<string, string>();
+        private static CancellationTokenSource _cancellationTokenSource;
 
         public static void Scrape(string url)
         {
@@ -196,13 +196,18 @@ namespace DarkStatsCore.Data
 
         public static void StartScrapeTask(TimeSpan saveTime, string url)
         {
-            _scrapeTask = ScrapeTask(url, saveTime);
+            if (_scrapeTask != null)
+            {
+                _cancellationTokenSource.Cancel();
+            }
+            _cancellationTokenSource = new CancellationTokenSource();
+            _scrapeTask = ScrapeTask(url, saveTime, _cancellationTokenSource.Token);
             DnsService.Start();
         }
         
-        private async static Task ScrapeTask(string url, TimeSpan saveTime)
+        private static async Task ScrapeTask(string url, TimeSpan saveTime, CancellationToken cancellationToken)
         {
-            while (true)
+            while (!cancellationToken.IsCancellationRequested)
             {
                 GatherData(url);
                 await Task.Delay(saveTime);

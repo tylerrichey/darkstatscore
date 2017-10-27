@@ -87,15 +87,22 @@ namespace DarkStatsCore.SignalR
 
         private void DataGatheredEvent(object sender, DashboardEventArgs e)
         {
-            _clients.Clients.All.InvokeAsync("GetLiveDeltas", new HostDeltasModel
+            try
             {
-                ElapsedMs = e.ElapsedMs,
-                Deltas = e.HostDeltas.Select(h => new HostDeltaModel
+                _clients.Clients.All.InvokeAsync("GetLiveDeltas", new HostDeltasModel
                 {
-                    Hostname = (string.IsNullOrEmpty(h.Hostname) || h.Hostname == "(none)") ? h.Ip : h.Hostname,
-                    Speed = h.LastCheckDeltaBytes
-                })
-            }).Wait();
+                    ElapsedMs = e.ElapsedMs,
+                    Deltas = e.HostDeltas.Select(h => new HostDeltaModel
+                    {
+                        Hostname = (string.IsNullOrEmpty(h.Hostname) || h.Hostname == "(none)") ? h.Ip : h.Hostname,
+                        Speed = h.LastCheckDeltaBytes
+                    })
+                }).Wait();
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine("Error pushing dashboard deltas: " + exc.InnerException != null ? exc.InnerException.Message : exc.Message);
+            }
         }
 
         private async Task<DashboardModel> GetDashboardModel()

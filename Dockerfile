@@ -1,5 +1,5 @@
 FROM microsoft/aspnetcore-build AS builder
-ARG SOURCE_BRANCH
+ARG CACHE_TAG
 ARG SOURCE_COMMIT
 WORKDIR /source
 COPY *.sln .
@@ -14,7 +14,7 @@ COPY . .
 WORKDIR /source/DarkStatsCore
 RUN dotnet publish --output /app/ --configuration Release
 WORKDIR /app
-RUN echo Docker ${SOURCE_BRANCH} ${SOURCE_COMMIT} >BUILD_VERSION
+RUN echo Docker ${CACHE_TAG} ${SOURCE_COMMIT} >BUILD_VERSION
 
 FROM microsoft/aspnetcore:2
 ENV TZ=America/New_York
