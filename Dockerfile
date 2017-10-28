@@ -9,7 +9,7 @@ COPY DarkStatsCore.Data/*.csproj DarkStatsCore.Data/
 RUN dotnet restore
 COPY DarkStatsCore/.bowerrc DarkStatsCore/
 COPY DarkStatsCore/bower.json DarkStatsCore/
-RUN cd DarkStatsCore && bower install --config.interactive=false 
+RUN cd DarkStatsCore && npm install
 COPY . .
 WORKDIR /source/DarkStatsCore
 RUN dotnet publish --output /app/ --configuration Release
