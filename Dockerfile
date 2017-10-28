@@ -7,8 +7,8 @@ RUN mkdir DarkStatsCore && mkdir DarkStatsCore.Data
 COPY DarkStatsCore/*.csproj DarkStatsCore/
 COPY DarkStatsCore.Data/*.csproj DarkStatsCore.Data/
 RUN dotnet restore
-COPY DarkStatsCore/.bowerrc DarkStatsCore/
-COPY DarkStatsCore/bower.json DarkStatsCore/
+COPY DarkStatsCore/package.json DarkStatsCore/
+COPY DarkStatsCore/package-lock.json DarkStatsCore/
 RUN cd DarkStatsCore && npm install && node copypackages.js
 COPY . .
 WORKDIR /source/DarkStatsCore

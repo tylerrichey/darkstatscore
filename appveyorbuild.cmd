@@ -2,7 +2,8 @@
 
 dotnet restore -v Minimal
 cd DarkStatsCore 
-npm install
+setlocal
+call npm install
 node copypackages.js
 dotnet publish -r win10-x64 -o .\darkstatscore-win10-x64
 dotnet publish -r osx.10.12-x64 -o .\darkstatscore-osx.10.12-x64
