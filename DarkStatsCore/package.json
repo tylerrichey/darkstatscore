@@ -18,5 +18,8 @@
     "type": "git",
     "url": "https://github.com/tylerrichey/darkstatscore"
   },
+  "scripts": {
+    "postinstall": "node copypackages.js"
+  },
   "license": "MIT"
 }
