@@ -40,7 +40,7 @@ namespace DarkStatsCore.Pages
                         .GroupBy(t => t.Day)
                         .Select(t => new DayDataModel
                         {
-                            Hour = t.Key.ToString("h tt"),
+                            Hour = t.Key,
                             TotalBytes = t.Sum(c => c.In + c.Out).BytesToString(),
                             GraphBytesIn = t.Sum(c => c.In),
                             GraphBytesOut = t.Sum(c => c.Out),

@@ -4,7 +4,8 @@ using DarkStatsCore.Models;
 
 public class DayDataModel
 {
-    public string Hour { get; set; }
+    public DateTime Hour { get; set; }
+    public string GraphHour { get; set; }
     public string TotalBytes { get; set; }
     public double GraphBytesIn { get; set; }
     public double GraphBytesOut { get; set; }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
@@ -11,6 +12,7 @@ namespace DarkStatsCore.Data
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
+            Directory.CreateDirectory("db");
 			optionsBuilder.UseSqlite("Data Source=db/darkstats.db");
             optionsBuilder.EnableSensitiveDataLogging();
 		}

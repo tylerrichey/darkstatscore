@@ -17,6 +17,7 @@ namespace DarkStatsCore
                 _listenUrl = args[0];
                 Console.WriteLine("Using listen address: " + _listenUrl);
             }
+            Console.WriteLine("Starting DarkStatsCore ({0})...", SettingsLib.VersionInformation);
             using (var context = new DarkStatsDbContext())
             {
                 context.Database.Migrate();

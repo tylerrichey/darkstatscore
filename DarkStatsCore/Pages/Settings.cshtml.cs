@@ -37,10 +37,14 @@ namespace DarkStatsCore.Pages
                 return Page();
             }
 
+            var oldSaveTime = _settings.SaveTime;
             _settings.SetSaveTime(SettingsModel.SaveTime);
             _settings.SetDashboardRefreshTime(SettingsModel.DashboardRefreshTime);
             _settings.SetUrl(SettingsModel.Url);
-            Scraper.StartScrapeTask(_settings.SaveTime, _settings.Url);
+            if (oldSaveTime != _settings.SaveTime)
+            {
+                Scraper.StartScrapeTask(_settings.SaveTime, _settings.Url);
+            }
             return RedirectToPage("/Index");
         }
     }

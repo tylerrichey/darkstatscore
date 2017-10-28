@@ -48,7 +48,7 @@
     <div class="row">
         <div class="col-sm-1"></div>
         <div class="col-sm-10 table-responsive">   
-            <table class="table table-condensed">
+            <table class="table table-bordered table-hover">
                 <thead>
                     <tr>
                         <th>Hour</th>
@@ -60,9 +60,21 @@
                     @foreach (var item in Model.DayData)
                         {
                         <tr>
-                            <td>@item.Hour</td>
+                            <td>@item.Hour.ToString("h tt")</td>
                             <td>@item.TotalBytes</td>
-                            <td>@Html.Raw(string.Join(" - ", item.TopConsumers.Select(c => c.Hostname + ": " + c.Total)))</td>
+                            <td>
+                                <table class="table table-condensed table-bordered table-hover">
+                                    <tbody>
+                                        @foreach (var host in item.TopConsumers)
+                                        {
+                                            <tr>
+                                                <td>@host.Hostname</td>
+                                                <td>@host.Total</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </td>
                         </tr>
                         }
                 </tbody>
@@ -75,7 +87,7 @@
 
     <script>
         var data = {
-        labels: [ @Html.Raw(string.Join(", ", Model.DayData.Select(g => "\"" + g.Hour + "\""))) ],
+        labels: [ @Html.Raw(string.Join(", ", Model.DayData.Select(g => "\"" + g.Hour.ToString("%H") + "\""))) ],
         series: [
                 [ @string.Join(", ", Model.DayData.Select(g => g.GraphBytesIn / 1024 / 1024 / 1024)) ],
                 [ @string.Join(", ", Model.DayData.Select(g => g.GraphBytesOut / 1024 / 1024 / 1024)) ]
@@ -95,7 +107,7 @@
             .on('draw', function(data) {
                 if(data.type === 'bar') {
                     data.element.attr({
-                        style: 'stroke-width: 30px'
+                        style: 'stroke-width: 10px'
                     });
                 }
             });

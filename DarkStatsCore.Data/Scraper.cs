@@ -26,6 +26,7 @@ namespace DarkStatsCore.Data
         private static int _deltasToKeep = 30;
         private static List<HostPadding> _hostPadding = new List<HostPadding>();        
         private static Task _scrapeTask;
+        private static CancellationTokenSource _cancellationTokenSource;
 
         public static void Scrape(string url)
         {
@@ -97,6 +98,10 @@ namespace DarkStatsCore.Data
 
             foreach (var s in stats)
             {
+                if (string.IsNullOrEmpty(s.Hostname) || s.Hostname == "(none)")
+                {
+                    DnsService.GetHostName(s);
+                }
                 var last = lastRecords.FirstOrDefault(t => t.Ip == s.Ip);
                 if (last == null)
                 {
@@ -141,7 +146,7 @@ namespace DarkStatsCore.Data
             LastGathered = now;
             if (DashboardScrape.IsTaskActive)
             {
-                ScrapeSaved(null, EventArgs.Empty);
+                ScrapeSaved?.Invoke(null, EventArgs.Empty);
             }
             context.Dispose();
         }
@@ -162,14 +167,14 @@ namespace DarkStatsCore.Data
             var data = new HtmlDocument();
             data.LoadHtml(rawData);
 
-            return data.DocumentNode
+            var trafficStats = data.DocumentNode
                        .Descendants("tr")
                        .Select(x => x.Elements("td"))
                        .Where(x => x.Count() == 7)
                        .Select(x => new TrafficStats
                        {
                            Ip = x.ElementAt(0).InnerText,
-                           Hostname = x.ElementAt(1).InnerText,
+                           Hostname = DnsService.GetHostName(x.ElementAt(0).InnerText, x.ElementAt(1).InnerText),
                            Mac = x.ElementAt(2).InnerText,
                            In = Convert.ToInt64(x.ElementAt(3).InnerText.Replace(",", "")),
                            Out = Convert.ToInt64(x.ElementAt(4).InnerText.Replace(",", "")),
@@ -177,6 +182,7 @@ namespace DarkStatsCore.Data
                            Day = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, 0, 0)
                        })
                        .ToList();
+            return trafficStats;
         }
 
         private static string GetHtml(string url)
@@ -188,11 +194,20 @@ namespace DarkStatsCore.Data
             }
         }
 
-        public static void StartScrapeTask(TimeSpan saveTime, string url) => _scrapeTask = ScrapeTask(url, saveTime);
-
-        private async static Task ScrapeTask(string url, TimeSpan saveTime)
+        public static void StartScrapeTask(TimeSpan saveTime, string url)
         {
-            while (true)
+            if (_scrapeTask != null)
+            {
+                _cancellationTokenSource.Cancel();
+            }
+            _cancellationTokenSource = new CancellationTokenSource();
+            _scrapeTask = ScrapeTask(url, saveTime, _cancellationTokenSource.Token);
+            DnsService.Start();
+        }
+        
+        private static async Task ScrapeTask(string url, TimeSpan saveTime, CancellationToken cancellationToken)
+        {
+            while (!cancellationToken.IsCancellationRequested)
             {
                 GatherData(url);
                 await Task.Delay(saveTime);

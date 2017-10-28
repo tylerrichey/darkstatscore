@@ -1,17 +1,68 @@
 using System;
 using System.Linq;
-using System.Threading;
-using System.Diagnostics;
-using System.Collections.Generic;
+using System.IO;
 using DarkStatsCore.Data;
 using Microsoft.EntityFrameworkCore;
 
 public class SettingsLib
 {
-    public bool InvalidSettings { get; internal set; }
-    public string Url { get; internal set; }
-    public TimeSpan SaveTime { get; internal set; }
-    public TimeSpan DashboardRefreshTime { get; internal set; }
+    public bool InvalidSettings => string.IsNullOrEmpty(Url);
+    public string Url
+    {
+        get
+        {
+            try
+            {
+                return GetSetting(_urlKey).StringValue;
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+    }
+    public TimeSpan SaveTime
+    {
+        get
+        {
+            try
+            {
+                return TimeSpan.FromSeconds(GetSetting(_saveTimeKey).IntValue);
+            }
+            catch
+            {
+                return TimeSpan.FromSeconds(60);
+            }
+        }
+    }
+    public TimeSpan DashboardRefreshTime
+    {
+        get
+        {
+            try
+            {
+                return TimeSpan.FromMilliseconds(GetSetting(_dashboardRefreshTimeKey).DoubleValue);
+            }
+            catch
+            {
+                return TimeSpan.FromSeconds(1);
+            }
+        }
+    }
+    public static string VersionInformation = GetFileString("BUILD_VERSION") ?? "Self compiled";
+
+    private static string GetFileString(string fileName)
+    {
+        try
+        {
+            return File.ReadAllText(fileName).Replace(Environment.NewLine, string.Empty).Trim();
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     private string _urlKey = "Url";
     private string _saveTimeKey = "SaveTime";
     private string _dashboardRefreshTimeKey = "DashboardRefreshTime";
@@ -21,21 +72,11 @@ public class SettingsLib
     public SettingsLib(DarkStatsDbContext context)
     {
         _context = context;
+        _context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
         if (!_context.Settings.Any())
         {
             SetSaveTime(15);
-            SetDashboardRefreshTime(500);
-        }
-        try
-        {
-            SaveTime = TimeSpan.FromSeconds(GetSetting(_saveTimeKey).IntValue);
-            DashboardRefreshTime = TimeSpan.FromMilliseconds(GetSetting(_dashboardRefreshTimeKey).DoubleValue);
-            Url = GetSetting(_urlKey).StringValue;
-            InvalidSettings = false;
-        }
-        catch
-        {
-            InvalidSettings = true;
+            SetDashboardRefreshTime(1000);
         }
     }    
 
@@ -66,7 +107,6 @@ public class SettingsLib
                 Name = _urlKey,
                 StringValue = filteredUrl
             });
-            Url = filteredUrl;
         }
         catch (Exception e)
         {
@@ -83,7 +123,6 @@ public class SettingsLib
                 Name = _saveTimeKey,
                 IntValue = saveTime
             });
-            SaveTime = TimeSpan.FromSeconds(saveTime);
         }
         catch (Exception e)
         {
@@ -100,7 +139,6 @@ public class SettingsLib
                 Name = _dashboardRefreshTimeKey,
                 DoubleValue = dashboardRefreshTime
             });
-            DashboardRefreshTime = TimeSpan.FromMilliseconds(dashboardRefreshTime);
         }
         catch (Exception e)
         {

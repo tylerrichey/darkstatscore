@@ -20,7 +20,7 @@
                     <a id="monthtotal" href="#" data-toggle="tooltip" title=""></a>
                 </td>
 				<td>
-                	<a id="todaytotal" href="#" data-toggle="tooltip" title=""></td>
+                	<a id="todaytotal" href="#" data-toggle="tooltip" title=""></a>
 				</td>
             </tr>
         </tbody>
@@ -111,7 +111,7 @@
 		processDashboardStream(dashboard);
 	});
 
-	function processDashboardStream(dashboard) {
+    function processDashboardStream(dashboard) {
         $("#monthstring").html(dashboard.CurrentMonthString);
         $("#lastgathered").html(dashboard.LastGathered);
         $("#scrapetimeavg").html(Math.round(dashboard.ScrapeTimeAvg));
@@ -123,7 +123,7 @@
         updateTotalsTooltip("#todaytotal", dashboard.CurrentDayTotalIn, dashboard.CurrentDayTotalOut);
 	}
 
-	function processDeltasStream(deltas) {
+    function processDeltasStream(deltas) {
 		var deltasToKeep = 30;
 		var chartLength = data.series[0].length;
 	    if (chartLength >= deltasToKeep)
@@ -160,24 +160,25 @@
 
 	function bytesToString(bytes)
 	{
-	    var suffix = [ "B", "KB", "MB", "GB", "TB" ];
+	    var suffix = [ "B", "KB", "MB", "GB" ];
 	    var i = 0;
 	    var newBytes = bytes;
-	    for (i = 0; i < suffix.length && bytes >= 1024; i++)
+        for (i = 0; i < suffix.length - 1 && bytes >= 1024; i++)
     	{
 	        newBytes = bytes / 1024;
-	        bytes = bytes / 1024;
-    	}
+            bytes = bytes / 1024;
+        }
+        console.log(i);
 	    return newBytes.toFixed(2) + " " + suffix[i];
 	}
 
 	function bytesToBitsPsToString(bytes, ms)
 	{
         var bits = bytesToBitsPs(bytes, ms);
-	    var suffix = [ "bps", "Kbps", "Mbps", "Gbps", "Tbps" ];
+	    var suffix = [ "bps", "Kbps", "Mbps", "Gbps" ];
 	    var i = 0;
 	    var newBits = bits;
-	    for (i = 0; i < suffix.length && bits >= 1024; i++)
+        for (i = 0; i < suffix.length - 1 && bits >= 1024; i++)
     	{
 	        newBits = bits / 1024;
 	        bits = bits / 1024;
