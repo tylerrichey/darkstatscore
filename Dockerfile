@@ -9,7 +9,8 @@ COPY DarkStatsCore.Data/*.csproj DarkStatsCore.Data/
 RUN dotnet restore
 COPY DarkStatsCore/package.json DarkStatsCore/
 COPY DarkStatsCore/package-lock.json DarkStatsCore/
-RUN cd DarkStatsCore && npm install
+COPY DarkStatsCore/copypackages.* DarkStatsCore/
+RUN cd DarkStatsCore && npm install && node copypackages.js
 COPY . .
 WORKDIR /source/DarkStatsCore
 RUN dotnet publish --output /app/ --configuration Release
