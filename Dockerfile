@@ -16,7 +16,7 @@ COPY . .
 WORKDIR /source/DarkStatsCore
 RUN dotnet publish --output /app/ --configuration Release
 WORKDIR /app
-cp -R /source/DarkStatsCore/wwwroot/lib wwwroot/lib
+RUN cp -R /source/DarkStatsCore/wwwroot/lib wwwroot/lib
 RUN echo Docker ${CACHE_TAG} ${SOURCE_COMMIT} >BUILD_VERSION
 
 FROM microsoft/aspnetcore:2
