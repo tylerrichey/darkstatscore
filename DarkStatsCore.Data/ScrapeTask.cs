@@ -45,7 +45,7 @@ namespace DarkStatsCore.Data
             {
                 Scraper.Scrape(url);
                 stopwatch.Stop();
-                Console.WriteLine("Done. (" + stopwatch.ElapsedMilliseconds + "ms)");
+                Console.WriteLine("Done.");
                 var now = DateTime.Now;
                 TimeSpanSinceLastCheck = now.Subtract(LastGathered);
                 LastGathered = now;

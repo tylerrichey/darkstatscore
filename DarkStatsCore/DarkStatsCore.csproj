@@ -6,12 +6,6 @@
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="Controllers\**" />
-    <Content Remove="Controllers\**" />
-    <EmbeddedResource Remove="Controllers\**" />
-    <None Remove="Controllers\**" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.0.0-alpha1-final" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="1.1.8" />
@@ -23,16 +17,9 @@
   <ItemGroup>
     <ProjectReference Include="..\DarkStatsCore.Data\DarkStatsCore.Data.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Models\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="Pages\PreviousMonths.cshtml">
-      <Generator>RazorTemplatePreprocessor</Generator>
-      <LastGenOutput>PreviousMonths.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="Pages\PreviousMonths.cs" />
-  </ItemGroup>
+  <Target Name="AddGeneratedContentItems" BeforeTargets="PrepareForPublish" DependsOnTargets="PrepareForPublish">
+    <ItemGroup>
+      <Content Include="wwwroot/**" CopyToPublishDirectory="PreserveNewest" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder);@(Content)" />
+    </ItemGroup>
+  </Target>
 </Project>
