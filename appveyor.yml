@@ -1,4 +1,6 @@
 version: 1.0.2.{build}
+skip_commits:
+  message: /\(noavbuild\).*/
 image: Visual Studio 2017
 dotnet_csproj:
   patch: true
