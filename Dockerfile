@@ -3,6 +3,7 @@ ARG CACHE_TAG
 ARG SOURCE_COMMIT
 ENV DOTNET_CLI_TELEMETRY_OPTOUT 1
 RUN npm install -g npm
+RUN npm install -g process-nextick-args util-deprecate
 WORKDIR /source
 COPY *.sln .
 RUN mkdir DarkStatsCore && mkdir DarkStatsCore.Data
