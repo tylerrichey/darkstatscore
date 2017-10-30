@@ -11,12 +11,15 @@ RUN dotnet restore
 COPY DarkStatsCore/package.json DarkStatsCore/
 COPY DarkStatsCore/package-lock.json DarkStatsCore/
 COPY DarkStatsCore/copypackages.* DarkStatsCore/
-RUN cd DarkStatsCore && npm install && node copypackages.js
+RUN cd DarkStatsCore && npm install
 COPY . .
 WORKDIR /source/DarkStatsCore
+RUN mkdir wwwroot/lib
+RUN node copypackages.js
 RUN dotnet publish --output /app/ --configuration Release
 WORKDIR /app
-RUN mkdir wwwroot/lib && cp -R /source/DarkStatsCore/wwwroot/lib/ wwwroot/lib/
+RUN mkdir wwwroot/lib && cp -R /source/DarkStatsCore/wwwroot/lib/* wwwroot/lib/
+RUN ls /app/wwwroot/lib
 RUN echo Docker ${CACHE_TAG} ${SOURCE_COMMIT} >BUILD_VERSION
 
 FROM microsoft/aspnetcore:2
