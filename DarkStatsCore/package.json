@@ -18,7 +18,7 @@
     "url": "https://github.com/tylerrichey/darkstatscore"
   },
   "scripts": {
-    "prepublish": "node copypackages.js"
+    "prepare": "node copypackages.js"
   },
   "license": "MIT"
 }
