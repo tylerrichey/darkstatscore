@@ -17,9 +17,4 @@
   <ItemGroup>
     <ProjectReference Include="..\DarkStatsCore.Data\DarkStatsCore.Data.csproj" />
   </ItemGroup>
-  <Target Name="AddGeneratedContentItems" BeforeTargets="PrepareForPublish" DependsOnTargets="PrepareForPublish">
-    <ItemGroup>
-      <Content Include="wwwroot/**" CopyToPublishDirectory="PreserveNewest" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder);@(Content)" />
-    </ItemGroup>
-  </Target>
 </Project>
