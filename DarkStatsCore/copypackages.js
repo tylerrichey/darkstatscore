@@ -1,10 +1,13 @@
-var copyfiles = require("copyfiles");
+var copy = require("copy");
 var packages = require("./copypackages.files.json");
 
-packages.forEach(function (files) {
-	copyfiles(files, [], function(){});
-	console.log("Copied " + files[0] + " to " + files[1]);
+packages.forEach(function (tocopy) {
+	copy(tocopy[0], tocopy[1], function(err, files) {
+		if (err) throw err;
+		files.forEach(function (copied) {
+			console.log("Copied " + copied.path);
+		});
+	});
 });
 
-console.log("Copy packages to wwwroot completed.");
 console.log();
