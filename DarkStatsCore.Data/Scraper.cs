@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Linq;
 using System.Collections.Generic;
+using System.Diagnostics;
 using HtmlAgilityPack;
 using Microsoft.EntityFrameworkCore;
 using DarkStatsCore.Data.Models;
@@ -14,10 +15,12 @@ namespace DarkStatsCore.Data
         public static EventHandler ScrapeSaved;
         private static long _lastCheckTotalBytes = 0;
         private static int _deltasToKeep = 30;
-        private static List<HostPadding> _hostPadding = new List<HostPadding>();        
+        private static List<HostPadding> _hostPadding = new List<HostPadding>();
+        private static List<TrafficCache> _hourCache = new List<TrafficCache>();
 
         public static void Scrape(string url)
         {
+            var stopwatch = Stopwatch.StartNew();
             var context = new DarkStatsDbContext();
             context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
             var stats = ScrapeData(url);
@@ -30,8 +33,10 @@ namespace DarkStatsCore.Data
             var traffic = context.TrafficStats
                                   .Where(t => t.Day.Month == DateTime.Now.Month && t.Day.Year == DateTime.Now.Year)
                                   .ToList();
-            _hostPadding.RemoveAll(h => h.Month != DateTime.Now.Month && h.Year != DateTime.Now.Year);
+            _hostPadding.RemoveAll(h => h.Month != DateTime.Now.Month || h.Year != DateTime.Now.Year);
+            _hourCache.RemoveAll(m => m.HourAdded != DateTime.Now.Hour);
             long statsTotal = stats.Sum(s => s.In + s.Out);
+            var trafftotal = traffic.Sum(t => t.In + t.Out);
             if (statsTotal + _hostPadding.Sum(h => h.In + h.Out) < traffic.Sum(t => t.In + t.Out))
             {
                 Console.Write("Source stats are lower than db, calculating host padding... ");
@@ -75,60 +80,47 @@ namespace DarkStatsCore.Data
             }
             _lastCheckTotalBytes = statsTotal;
 
+            Console.Write("({0}ms) ", stopwatch.ElapsedMilliseconds);
+            stopwatch.Restart();
             Console.Write("Saving... ");
-            var lastRecords = context.TrafficStats
-                                     .GroupBy(t => t.Ip)
-                                     .Select(t => new
-                                     {
-                                         Ip = t.Key,
-                                         Latest = t.Max(d => d.Day)
-                                     })
-                                     .ToList();
-
             foreach (var s in stats)
             {
-                if (string.IsNullOrEmpty(s.Hostname) || s.Hostname == "(none)")
+                if (!_hourCache.Any(c => c.Ip == s.Ip))
                 {
-                    DnsService.GetHostName(s);
+                    var items = traffic.Where(t => t.Ip == s.Ip && t.Day != s.Day &&
+                                                t.Day.Month == s.Day.Month &&
+                                                t.Day.Year == s.Day.Year);
+                    _hourCache.Add(new TrafficCache
+                    {
+                        Ip = s.Ip,
+                        HourAdded = DateTime.Now.Hour,
+                        In = items.Count() > 0 ? items.Sum(i => i.In) : 0,
+                        Out = items.Count() > 0 ? items.Sum(i => i.Out) : 0
+                    });
                 }
-                var last = lastRecords.FirstOrDefault(t => t.Ip == s.Ip);
+
+                var last = traffic.Where(t => t.Ip == s.Ip).OrderByDescending(t => t.Day).FirstOrDefault();
                 if (last == null)
                 {
                     context.Add(s);
                     continue;
                 }
+                
+                var cache = _hourCache.First(m => m.Ip == s.Ip);
+                s.In = s.In - cache.In;
+                s.Out = s.Out - cache.Out;
 
-                if (last.Latest.Month != s.Day.Month || last.Latest.Year != s.Day.Year)
+                if (last.Day == s.Day)
                 {
-                    context.Add(s);
-                    continue;
-                }
-
-                var current = traffic.First(t => t.Ip == s.Ip && t.Day == last.Latest);
-                if (current.Day == s.Day)
-                {
-                    var items = traffic.Where(t => t.Ip == s.Ip &&
-                                                   t.Day != s.Day &&
-                                                   t.Day.Month == s.Day.Month &&
-                                                   t.Day.Year == s.Day.Year);
-                    if (items != null)
-                    {
-                        s.In = s.In - items.Sum(t => t.In);
-                        s.Out = s.Out - items.Sum(t => t.Out);
-                    }
                     context.Update(s);
                 }
                 else
                 {
-                    var items = traffic.Where(t => t.Ip == s.Ip &&
-                                                   t.Day.Month == s.Day.Month &&
-                                                   t.Day.Year == s.Day.Year);
-                    s.In = s.In - items.Sum(t => t.In);
-                    s.Out = s.Out - items.Sum(t => t.Out);
                     context.Add(s);
                 }
             }
             context.SaveChanges();
+            Console.Write("({0}ms) ", stopwatch.ElapsedMilliseconds);
 
             if (DashboardScrape.IsTaskActive)
             {

@@ -1,6 +1,7 @@
 FROM microsoft/aspnetcore-build AS builder
 ARG CACHE_TAG
 ARG SOURCE_COMMIT
+ENV DOTNET_CLI_TELEMETRY_OPTOUT 1
 WORKDIR /source
 COPY *.sln .
 RUN mkdir DarkStatsCore && mkdir DarkStatsCore.Data
@@ -10,7 +11,7 @@ RUN dotnet restore
 COPY DarkStatsCore/package.json DarkStatsCore/
 COPY DarkStatsCore/package-lock.json DarkStatsCore/
 COPY DarkStatsCore/copypackages.* DarkStatsCore/
-RUN cd DarkStatsCore && npm install && node copypackages.js
+RUN cd DarkStatsCore && npm install
 COPY . .
 WORKDIR /source/DarkStatsCore
 RUN dotnet publish --output /app/ --configuration Release
