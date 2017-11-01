@@ -65,6 +65,7 @@
 	</div>
 </div>
 <script src="~/lib/chartist/chartist.min.js"></script>
+<script src="~/lib/chartist/chartist-plugin-tooltip.min.js"></script>
 <script type="text/javascript">
         if (typeof Promise === 'undefined') {
             document.write('<script type="text/javascript" src="/lib/signalr/signalr-clientES5-1.0.0-alpha2-final.min.js"><\/script>');
@@ -86,7 +87,14 @@
 	        labelInterpolationFnc: function(value) {
         	    return value + " Mbps";
         	}
-	    }
+        },
+        plugins: [
+            Chartist.plugins.tooltip({
+                transformTooltipTextFnc: function (value) {
+                    return value + " Mbps";
+                }
+            })
+        ]
     };
 
     var chart = new Chartist.Line(".ct-chart", data, options);
