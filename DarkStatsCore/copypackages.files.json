@@ -1,0 +1,10 @@
+[
+  ["node_modules/@aspnet/signalr-client/dist/browser/signalr-client*.min.js","wwwroot/lib/signalr/"  ],
+  ["node_modules/bootstrap/dist/js/bootstrap.min.js*","wwwroot/lib/bootstrap/"  ],
+  ["node_modules/bootstrap/dist/css/bootstrap.min.css*","wwwroot/lib/bootstrap/"  ],
+  ["node_modules/chartist/dist/chartist.min.*","wwwroot/lib/chartist/"  ],
+  ["node_modules/jquery/dist/jquery.min.*","wwwroot/lib/jquery/"  ],
+  ["node_modules/components-jqueryui/jquery-ui.min.js*","wwwroot/lib/jquery-ui/"  ],
+  ["node_modules/components-jqueryui/themes/base/jquery-ui.min.css*","wwwroot/lib/jquery-ui/themes/base/"  ],
+  ["node_modules/components-jqueryui/themes/base/images/*","wwwroot/lib/jquery-ui/themes/base/images/"  ]
+]

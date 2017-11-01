@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using DarkStatsCore.Data;
@@ -43,7 +38,7 @@ namespace DarkStatsCore.Pages
             _settings.SetUrl(SettingsModel.Url);
             if (oldSaveTime != _settings.SaveTime)
             {
-                Scraper.StartScrapeTask(_settings.SaveTime, _settings.Url);
+                ScrapeTask.StartScrapeTask(_settings.SaveTime, _settings.Url);
             }
             return RedirectToPage("/Index");
         }

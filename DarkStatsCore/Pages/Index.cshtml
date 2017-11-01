@@ -64,8 +64,15 @@
 		</table>
 	</div>
 </div>
-<script src="~/lib/chartist/dist/chartist.min.js"></script>
-<script src="~/js/signalr-client.min.js"></script>
+<script src="~/lib/chartist/chartist.min.js"></script>
+<script type="text/javascript">
+        if (typeof Promise === 'undefined') {
+            document.write('<script type="text/javascript" src="/lib/signalr/signalr-clientES5-1.0.0-alpha2-final.min.js"><\/script>');
+        }
+        else {
+            document.write('<script type="text/javascript" src="/lib/signalr/signalr-client-1.0.0-alpha2-final.min.js"><\/script>');
+        }
+    </script>
 <script>
 	var data = {
       series: [
@@ -83,8 +90,8 @@
     };
 
     var chart = new Chartist.Line(".ct-chart", data, options);
-
-	let connection = new signalR.HubConnection("/dashboard");
+    let logger = new signalR.ConsoleLogger(signalR.LogLevel.Information);
+    let connection = new signalR.HubConnection("/dashboard", { logger: logger });
     connection.start().then(function () {
 	    connection.invoke("GetDashboard").then(function (dashboard) {
             processDashboardStream(dashboard);
@@ -168,7 +175,6 @@
 	        newBytes = bytes / 1024;
             bytes = bytes / 1024;
         }
-        console.log(i);
 	    return newBytes.toFixed(2) + " " + suffix[i];
 	}
 

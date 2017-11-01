@@ -24,7 +24,7 @@ namespace DarkStatsCore
                 var settings = new SettingsLib(context);
                 if (!settings.InvalidSettings)
                 {
-                    Scraper.StartScrapeTask(settings.SaveTime, settings.Url);
+                    ScrapeTask.StartScrapeTask(settings.SaveTime, settings.Url);
                 }
             }
             BuildWebHost(args).Run();

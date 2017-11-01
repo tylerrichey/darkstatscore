@@ -109,8 +109,8 @@ namespace DarkStatsCore.SignalR
         {
             var dashboard = new DashboardModel
             {
-                LastGathered = Scraper.LastGathered.ToString("MM/dd/yyyy hh:mm:ss tt"),
-                ScrapeTimeAvg = Scraper.ScrapeTimeAvg
+                LastGathered = ScrapeTask.LastGathered.ToString("MM/dd/yyyy hh:mm:ss tt"),
+                ScrapeTimeAvg = ScrapeTask.ScrapeTimeAvg
             };
 			var traffic = await _context.TrafficStats
                                   .Where(t => t.Day.Month == DateTime.Now.Month && t.Day.Year == DateTime.Now.Year)

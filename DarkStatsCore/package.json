@@ -1,0 +1,24 @@
+{
+  "name": "darkstatscore",
+  "description": "A bandwidth monitoring tool in ASP.NET Core",
+  "dependencies": {
+    "@aspnet/signalr-client": "^1.0.0-alpha2-final",
+    "bootstrap": "^3.3.7",
+    "chartist": "^0.11.0",
+    "components-jqueryui": "^1.12.1",
+    "jquery": "^3.2.1",
+    "jquery-validation": "^1.17.0",
+    "jquery-validation-unobtrusive": "^3.2.6"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tylerrichey/darkstatscore"
+  },
+  "scripts": {
+    "prepare": "node copypackages.js"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "copy": "^0.3.1"
+  }
+}

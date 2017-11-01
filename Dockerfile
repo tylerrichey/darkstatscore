@@ -1,17 +1,20 @@
 FROM microsoft/aspnetcore-build AS builder
 ARG CACHE_TAG
 ARG SOURCE_COMMIT
+ENV DOTNET_CLI_TELEMETRY_OPTOUT 1
 WORKDIR /source
 COPY *.sln .
 RUN mkdir DarkStatsCore && mkdir DarkStatsCore.Data
 COPY DarkStatsCore/*.csproj DarkStatsCore/
 COPY DarkStatsCore.Data/*.csproj DarkStatsCore.Data/
 RUN dotnet restore
-COPY DarkStatsCore/.bowerrc DarkStatsCore/
-COPY DarkStatsCore/bower.json DarkStatsCore/
-RUN cd DarkStatsCore && bower install --config.interactive=false 
+COPY DarkStatsCore/package.json DarkStatsCore/
+COPY DarkStatsCore/package-lock.json DarkStatsCore/
+COPY DarkStatsCore/copypackages.* DarkStatsCore/
+RUN cd DarkStatsCore && npm install
 COPY . .
 WORKDIR /source/DarkStatsCore
+RUN node copypackages.js
 RUN dotnet publish --output /app/ --configuration Release
 WORKDIR /app
 RUN echo Docker ${CACHE_TAG} ${SOURCE_COMMIT} >BUILD_VERSION

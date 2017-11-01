@@ -1,0 +1,24 @@
+version: 1.0.2.{build}
+skip_commits:
+  message: /\(noavbuild\).*/
+image: Visual Studio 2017
+dotnet_csproj:
+  patch: true
+  file: '**\*.csproj'
+  version: '{version}'
+  package_version: '{version}'
+  assembly_version: '{version}'
+  file_version: '{version}'
+  informational_version: '{version}'
+install:
+- cmd: npm install -g npm
+build_script:
+- cmd: "appveyorbuild.cmd"
+test: off
+artifacts:
+- path: DarkStatsCore\darkstatscore-debian.8-x64
+  name: darkstatscore-debian
+- path: DarkStatsCore\darkstatscore-win10-x64
+  name: darkstatscore-win10
+- path: DarkStatsCore\darkstatscore-osx.10.12-x64
+  name: darkstatscore-osx
