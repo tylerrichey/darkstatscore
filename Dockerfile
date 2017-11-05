@@ -1,5 +1,5 @@
 FROM microsoft/aspnetcore-build AS builder
-ARG CACHE_TAG
+ARG SOURCE_BRANCH
 ARG SOURCE_COMMIT
 ENV DOTNET_CLI_TELEMETRY_OPTOUT 1
 WORKDIR /source
@@ -17,7 +17,7 @@ WORKDIR /source/DarkStatsCore
 RUN node copypackages.js
 RUN dotnet publish --output /app/ --configuration Release
 WORKDIR /app
-RUN echo Docker ${CACHE_TAG} ${SOURCE_COMMIT} >BUILD_VERSION
+RUN echo Docker ${SOURCE_BRANCH} ${SOURCE_COMMIT} >BUILD_VERSION
 
 FROM microsoft/aspnetcore:2
 ENV TZ=America/New_York

@@ -32,8 +32,8 @@ namespace DarkStatsCore.Data
             }
 
             var traffic = context.TrafficStats
-                                  .Where(t => t.Day.Month == DateTime.Now.Month && t.Day.Year == DateTime.Now.Year)
-                                  .ToList();
+                                  .Where(t => t.Day.Month == DateTime.Now.Month && t.Day.Year == DateTime.Now.Year);
+                                  //.ToList();
             PopulateTrafficCache(traffic);
             CalculateHostPadding(stats, traffic);
             AdjustDeltas(stats);
@@ -85,9 +85,9 @@ namespace DarkStatsCore.Data
             context.Dispose();
         }
 
-        private static void PopulateTrafficCache(List<TrafficStats> traffic)
+        private static void PopulateTrafficCache(IEnumerable<TrafficStats> traffic)
         {
-            if (_hourCache.RemoveAll(m => m.HourAdded != DateTime.Now.Hour) > 0 || _hourCache.Count() == 0)
+            if (_hourCache.RemoveAll(m => m.HourAdded != DateTime.Now.Hour) > 0 || _hourCache.Count == 0)
             {
                 _hourCache = traffic.Where(t => t.Day != _currentHour && t.Day.Month == _currentHour.Month && t.Day.Year == _currentHour.Year)
                     .GroupBy(t => t.Ip)
@@ -102,7 +102,7 @@ namespace DarkStatsCore.Data
             }
         }
 
-        private static void CalculateHostPadding(List<TrafficStats> stats, List<TrafficStats> traffic)
+        private static void CalculateHostPadding(List<TrafficStats> stats, IEnumerable<TrafficStats> traffic)
         {
             _hostPadding.RemoveAll(h => h.Month != DateTime.Now.Month || h.Year != DateTime.Now.Year);
             if (stats.Sum(s => s.In + s.Out) + _hostPadding.Sum(h => h.In + h.Out) < traffic.Sum(t => t.In + t.Out))
