@@ -30,16 +30,21 @@ namespace DarkStatsCore.Data
             {
                 throw new Exception("Aborting, scrape empty.");
             }
-
+            Console.Write("({0}ms) ", stopwatch.ElapsedMilliseconds);
+            stopwatch.Restart();
+            Console.Write("Loading... ");
             var traffic = context.TrafficStats
-                                  .Where(t => t.Day.Month == DateTime.Now.Month && t.Day.Year == DateTime.Now.Year);
-                                  //.ToList();
+                                  .Where(t => t.Day.Month == DateTime.Now.Month && t.Day.Year == DateTime.Now.Year)
+                                  .ToList();
+            Console.Write("({0}ms) ", stopwatch.ElapsedMilliseconds);
+            stopwatch.Restart();
+            Console.WriteLine("Caching... ");
             PopulateTrafficCache(traffic);
             CalculateHostPadding(stats, traffic);
             AdjustDeltas(stats);
-
             Console.Write("({0}ms) ", stopwatch.ElapsedMilliseconds);
             stopwatch.Restart();
+            
             Console.Write("Saving... ");
             foreach (var s in stats)
             {
@@ -85,7 +90,7 @@ namespace DarkStatsCore.Data
             context.Dispose();
         }
 
-        private static void PopulateTrafficCache(IEnumerable<TrafficStats> traffic)
+        private static void PopulateTrafficCache(List<TrafficStats> traffic)
         {
             if (_hourCache.RemoveAll(m => m.HourAdded != DateTime.Now.Hour) > 0 || _hourCache.Count == 0)
             {
@@ -102,7 +107,7 @@ namespace DarkStatsCore.Data
             }
         }
 
-        private static void CalculateHostPadding(List<TrafficStats> stats, IEnumerable<TrafficStats> traffic)
+        private static void CalculateHostPadding(List<TrafficStats> stats, List<TrafficStats> traffic)
         {
             _hostPadding.RemoveAll(h => h.Month != DateTime.Now.Month || h.Year != DateTime.Now.Year);
             if (stats.Sum(s => s.In + s.Out) + _hostPadding.Sum(h => h.In + h.Out) < traffic.Sum(t => t.In + t.Out))

@@ -22,10 +22,3 @@ artifacts:
   name: darkstatscore-win10
 - path: DarkStatsCore\darkstatscore-osx.10.12-x64
   name: darkstatscore-osx
-deploy:
-- provider: GitHub
-  auth_token:
-    secure: gIYHVyWTY6tVxARuLhgPV2CDkmB62s9epYf8C4XJIKJs+2CV4mexziUeDcOLiqzoIW5amRNkiZfjI4WMu8IsGqJ3Xxn397NEokyYZUc4pYU=
-  artifact: darkstatscore-debian,darkstatscore-win10,darkstatscore-osx
-  draft: true
-  force_update: true
