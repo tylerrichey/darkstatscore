@@ -24,7 +24,7 @@ namespace DarkStatsCore.Data
             _currentHour = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, 0, 0);
             var stopwatch = Stopwatch.StartNew();
             var context = new DarkStatsDbContext();
-            context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+            //context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
             var stats = ScrapeData(url);
             if (stats.Count() == 0)
             {
@@ -73,7 +73,13 @@ namespace DarkStatsCore.Data
 
                 if (last.Day == s.Day)
                 {
-                    context.Update(s);
+                    //context.Update(s);
+                    last.Hostname = s.Hostname;
+                    last.In = s.In;
+                    last.LastSeen = s.LastSeen;
+                    last.Mac = s.Mac;
+                    last.Out = s.Out;
+                    context.Update(last);
                 }
                 else
                 {
