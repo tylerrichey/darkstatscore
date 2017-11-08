@@ -30,18 +30,12 @@ namespace DarkStatsCore.Data
             {
                 throw new Exception("Aborting, scrape empty.");
             }
-            Console.Write("({0}ms) ", stopwatch.ElapsedMilliseconds);
-            stopwatch.Restart();
-            Console.Write("Loading... ");
             if (_traffic == null)
             {
                 _traffic = context.TrafficStats
                     .Where(t => t.Day.Month == DateTime.Now.Month && t.Day.Year == DateTime.Now.Year)
                     .ToList();
             }
-            Console.Write("({0}ms) ", stopwatch.ElapsedMilliseconds);
-            stopwatch.Restart();
-            Console.Write("Caching... ");
             PopulateTrafficCache();
             CalculateHostPadding(stats);
             AdjustDeltas(stats);
@@ -77,7 +71,7 @@ namespace DarkStatsCore.Data
                 if (last.Day == s.Day)
                 {
                     context.Update(s);
-                    _traffic.RemoveAll(t => t.Ip == s.Ip);
+                    _traffic.RemoveAll(t => t.Ip == s.Ip && t.Day == s.Day);
                     _traffic.Add(s);
                 }
                 else
