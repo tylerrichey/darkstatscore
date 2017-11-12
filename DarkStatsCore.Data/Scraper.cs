@@ -18,7 +18,7 @@ namespace DarkStatsCore.Data
         private static List<HostPadding> _hostPadding = new List<HostPadding>();
         private static List<TrafficCache> _hourCache = new List<TrafficCache>();
         private static DateTime _currentHour = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, 0, 0);
-
+        private static List<TrafficStats> _traffic;
         public static void Scrape(string url)
         {
             _currentHour = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, 0, 0);
@@ -30,14 +30,15 @@ namespace DarkStatsCore.Data
             {
                 throw new Exception("Aborting, scrape empty.");
             }
-
-            var traffic = context.TrafficStats
-                                  .Where(t => t.Day.Month == DateTime.Now.Month && t.Day.Year == DateTime.Now.Year)
-                                  .ToList();
-            PopulateTrafficCache(traffic);
-            CalculateHostPadding(stats, traffic);
+            if (_traffic == null)
+            {
+                _traffic = context.TrafficStats
+                    .Where(t => t.Day.Month == DateTime.Now.Month && t.Day.Year == DateTime.Now.Year)
+                    .ToList();
+            }
+            PopulateTrafficCache();
+            CalculateHostPadding(stats);
             AdjustDeltas(stats);
-
             Console.Write("({0}ms) ", stopwatch.ElapsedMilliseconds);
             stopwatch.Restart();
             Console.Write("Saving... ");
@@ -55,10 +56,11 @@ namespace DarkStatsCore.Data
                     });
                 }
 
-                var last = traffic.Where(t => t.Ip == s.Ip).OrderByDescending(t => t.Day).FirstOrDefault();
+                var last = _traffic.Where(t => t.Ip == s.Ip).OrderByDescending(t => t.Day).FirstOrDefault();
                 if (last == null)
                 {
                     context.Add(s);
+                    _traffic.Add(s);
                     continue;
                 }
 
@@ -69,10 +71,13 @@ namespace DarkStatsCore.Data
                 if (last.Day == s.Day)
                 {
                     context.Update(s);
+                    _traffic.RemoveAll(t => t.Ip == s.Ip && t.Day == s.Day);
+                    _traffic.Add(s);
                 }
                 else
                 {
                     context.Add(s);
+                    _traffic.Add(s);
                 }
             }
             context.SaveChanges();
@@ -85,11 +90,11 @@ namespace DarkStatsCore.Data
             context.Dispose();
         }
 
-        private static void PopulateTrafficCache(List<TrafficStats> traffic)
+        private static void PopulateTrafficCache()
         {
-            if (_hourCache.RemoveAll(m => m.HourAdded != DateTime.Now.Hour) > 0 || _hourCache.Count() == 0)
+            if (_hourCache.RemoveAll(m => m.HourAdded != DateTime.Now.Hour) > 0 || _hourCache.Count == 0)
             {
-                _hourCache = traffic.Where(t => t.Day != _currentHour && t.Day.Month == _currentHour.Month && t.Day.Year == _currentHour.Year)
+                _hourCache = _traffic.Where(t => t.Day != _currentHour && t.Day.Month == _currentHour.Month && t.Day.Year == _currentHour.Year)
                     .GroupBy(t => t.Ip)
                     .Select(t => new TrafficCache
                     {
@@ -102,14 +107,14 @@ namespace DarkStatsCore.Data
             }
         }
 
-        private static void CalculateHostPadding(List<TrafficStats> stats, List<TrafficStats> traffic)
+        private static void CalculateHostPadding(List<TrafficStats> stats)
         {
             _hostPadding.RemoveAll(h => h.Month != DateTime.Now.Month || h.Year != DateTime.Now.Year);
-            if (stats.Sum(s => s.In + s.Out) + _hostPadding.Sum(h => h.In + h.Out) < traffic.Sum(t => t.In + t.Out))
+            if (stats.Sum(s => s.In + s.Out) + _hostPadding.Sum(h => h.In + h.Out) < _traffic.Sum(t => t.In + t.Out))
             {
                 Console.Write("Source stats are lower than db, calculating host padding... ");
                 _hostPadding = new List<HostPadding>();
-                foreach (var t in traffic.GroupBy(t => t.Ip))
+                foreach (var t in _traffic.GroupBy(t => t.Ip))
                 {
                     var current = stats.FirstOrDefault(s => s.Ip == t.Key);
                     if (current != null)
