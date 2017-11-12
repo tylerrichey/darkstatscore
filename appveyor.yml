@@ -1,4 +1,4 @@
-version: 1.0.3.{build}
+version: 1.0.4.{build}
 skip_commits:
   message: /\(noavbuild\).*/
 image: Visual Studio 2017
@@ -22,3 +22,13 @@ artifacts:
   name: darkstatscore-win10
 - path: DarkStatsCore\darkstatscore-osx.10.12-x64
   name: darkstatscore-osx
+deploy:
+  provider: GitHub
+  auth_token:
+    secure: n1OgGt82FcEmQ0xxbZZdCDu779HenUFZ+vAstDBngjQEJ1MOWcHuCSHiYwma5SqR
+  artifact: darkstatscore-debian,darkstatscore-win10,darkstatscore-osx
+  draft: true
+  prerelease: false
+  on:
+    branch: master                 # release from master branch only
+    appveyor_repo_tag: true 
