@@ -5,6 +5,7 @@ A bandwidth monitoring tool in ASP.NET Core.
 [![Docker Build Statu](https://img.shields.io/docker/build/tylerrichey/darkstatscore.svg)](https://hub.docker.com/r/tylerrichey/darkstatscore/)
 [![GitHub release](https://img.shields.io/github/release/tylerrichey/darkstatscore.svg)]()
 [![GitHub tag](https://img.shields.io/github/tag/tylerrichey/darkstatscore.svg)]()
+[![AppVeyor](https://img.shields.io/appveyor/ci/tylerrichey/darkstatscore.svg)](https://ci.appveyor.com/project/tylerrichey/darkstatscore)
 
 ![darkstatscore](https://user-images.githubusercontent.com/11445915/31852482-56177398-b646-11e7-9e30-784382b18eca.png)
 
@@ -20,15 +21,18 @@ To start using this, run something like:
 
 By default, the container will use the America/New_York timezone. If you live in another timezone, use the -e option and override the TZ environment variable.
 
-I'm not currently building any other executables for this project, but you can run it from source with:
+```docker run -it -d --restart always -v "/your/machine/darkstatscore/db":/app/db -p 6677:6677 -e TZ=America/Los_Angeles tylerrichey/darkstatscore```
+
+There are standalone executables available on the release page (from 1.0.3) for Windows, Debian and OS X. You can also get the latest dev build directly from the [AppVeyor project](https://ci.appveyor.com/project/tylerrichey/darkstatscore/build/artifacts).
+
+Run from source with:
 
 ```
 git clone https://github.com/tylerrichey/darkstatscore.git
 cd darkstatscore
 dotnet restore
 cd DarkStatsCore
-bower install
-mkdir db
+npm install (if you don't have npm > v4 then you'll need to run this command next: node copypackages.js)
 dotnet run <optional argument to specify a different port, i.e., http://*:8080>
 ```
 
