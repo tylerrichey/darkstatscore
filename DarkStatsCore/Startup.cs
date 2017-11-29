@@ -30,6 +30,10 @@ namespace DarkStatsCore
             services.AddScoped<DashboardHub>();
             services.AddSingleton<Dashboard>();
             services.AddScoped<SettingsLib>();
+            services.AddMiniProfiler(options =>
+            {
+                options.RouteBasePath = "/profiler";
+            }).AddEntityFramework();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -43,8 +47,8 @@ namespace DarkStatsCore
             {
                 app.UseExceptionHandler("/Error");
             }
-
-			loggerFactory.AddConsole(Configuration.GetSection("Logging"));
+            app.UseMiniProfiler();
+            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             app.UseStaticFiles();
             app.UseMvc(routes =>
             {
