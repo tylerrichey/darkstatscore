@@ -117,7 +117,7 @@
 	    });
 	});
 
-	connection.on("GetLiveDeltas", function(deltas) {
+    connection.on("GetLiveDeltas", function (deltas) {
 		processDeltasStream(deltas);
 	});
 
@@ -126,15 +126,15 @@
 	});
 
     function processDashboardStream(dashboard) {
-        $("#monthstring").html(dashboard.CurrentMonthString);
-        $("#lastgathered").html(dashboard.LastGathered);
-        $("#scrapetimeavg").html(Math.round(dashboard.ScrapeTimeAvg));
-        $("#currenthourspeed").html(dashboard.CurrentHour);
-        $("#monthspeed").html(dashboard.CurrentMonth);
-        $("#monthtotal").html(bytesToString(dashboard.CurrentMonthTotalIn + dashboard.CurrentMonthTotalOut));
-        updateTotalsTooltip("#monthtotal", dashboard.CurrentMonthTotalIn, dashboard.CurrentMonthTotalOut);
-		$("#todaytotal").html(bytesToString(dashboard.CurrentDayTotalIn + dashboard.CurrentDayTotalOut));
-        updateTotalsTooltip("#todaytotal", dashboard.CurrentDayTotalIn, dashboard.CurrentDayTotalOut);
+        $("#monthstring").html(dashboard.currentMonthString);
+        $("#lastgathered").html(dashboard.lastGathered);
+        $("#scrapetimeavg").html(Math.round(dashboard.scrapeTimeAvg));
+        $("#currenthourspeed").html(dashboard.currentHour);
+        $("#monthspeed").html(dashboard.currentMonth);
+        $("#monthtotal").html(bytesToString(dashboard.currentMonthTotalIn + dashboard.currentMonthTotalOut));
+        updateTotalsTooltip("#monthtotal", dashboard.currentMonthTotalIn, dashboard.currentMonthTotalOut);
+		$("#todaytotal").html(bytesToString(dashboard.currentDayTotalIn + dashboard.currentDayTotalOut));
+        updateTotalsTooltip("#todaytotal", dashboard.currentDayTotalIn, dashboard.currentDayTotalOut);
 	}
 
     function processDeltasStream(deltas) {
@@ -145,18 +145,18 @@
 			var remove = (chartLength == deltasToKeep) ? 1 : chartLength - deltasToKeep;
 	        data.series[0].splice(0, remove);
 	    }
-	    if (deltas.Deltas.length == 0)
+	    if (deltas.deltas.length == 0)
 	    {
 			return;
 	    }
-		var totalDelta = deltas.Deltas.reduce(getDeltaSum, 0);
-	    $("#lastcheckspeed").html(bytesToBitsPsToString(totalDelta, deltas.ElapsedMs));
-	    delta = (bytesToBitsPs(totalDelta, deltas.ElapsedMs) / 1024 / 1024).toFixed(2);   
+		var totalDelta = deltas.deltas.reduce(getDeltaSum, 0);
+	    $("#lastcheckspeed").html(bytesToBitsPsToString(totalDelta, deltas.elapsedMs));
+	    delta = (bytesToBitsPs(totalDelta, deltas.elapsedMs) / 1024 / 1024).toFixed(2);   
         data.series[0].push(delta)
 	    chart.update();
 	    $("#speedTable").empty();
-        $.each(deltas.Deltas, function(index, value) {
-            $("#speedTable").append("<tr><td>" + value.Hostname + "</td><td>" + bytesToBitsPsToString(value.Speed, deltas.ElapsedMs) + "</td></tr>");
+        $.each(deltas.deltas, function(index, value) {
+            $("#speedTable").append("<tr><td>" + value.hostname + "</td><td>" + bytesToBitsPsToString(value.speed, deltas.elapsedMs) + "</td></tr>");
         });
 	}
 
@@ -200,7 +200,7 @@
 	}
 
 	function getDeltaSum(total, delta) {
-        return total + delta.Speed;
+        return total + delta.speed;
     }
 </script>
 

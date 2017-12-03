@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using DarkStatsCore.Data.Models;
+using Serilog;
 
 namespace DarkStatsCore.Data
 {
@@ -21,7 +22,7 @@ namespace DarkStatsCore.Data
         {
             if (!IsTaskActive)
             {
-                Console.WriteLine(DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss") + " - Starting dashboard scrape...");
+                Log.Information("Starting dashboard scrape...");
                 _updateEvent = false;
                 _scrapeTask = ExecuteScrapeTask(url, refreshTime, cancellationToken);
             }
@@ -37,7 +38,7 @@ namespace DarkStatsCore.Data
             _updateEvent = false;
             _dashboardDeltas = new List<HostDelta>();
             _scrapeTask = null;
-            Console.WriteLine(DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss") + " - Dashboard scrape stopped.");
+            Log.Information("Dashboard scrape stopped");
         }       
 
         private static void Scrape(string url)
@@ -62,7 +63,7 @@ namespace DarkStatsCore.Data
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error on Dashboard scrape: " + e.InnerException != null ? e.InnerException.Message : e.Message);
+                Log.Fatal(e, "Error on dashboard scrape");
             }
         }
     }

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using HtmlAgilityPack;
 using Microsoft.EntityFrameworkCore;
 using DarkStatsCore.Data.Models;
+using Serilog;
 
 namespace DarkStatsCore.Data
 {
@@ -39,9 +40,8 @@ namespace DarkStatsCore.Data
             PopulateTrafficCache();
             CalculateHostPadding(stats);
             AdjustDeltas(stats);
-            Console.Write("({0}ms) ", stopwatch.ElapsedMilliseconds);
+            Log.Information("Gathering Data... ({DataTimer}ms) ", stopwatch.ElapsedMilliseconds);
             stopwatch.Restart();
-            Console.Write("Saving... ");
             foreach (var s in stats)
             {
                 if (!_hourCache.Any(c => c.Ip == s.Ip))
@@ -81,7 +81,7 @@ namespace DarkStatsCore.Data
                 }
             }
             context.SaveChanges();
-            Console.Write("({0}ms) ", stopwatch.ElapsedMilliseconds);
+            Log.Information("Saving... ({SaveTimer}ms) ", stopwatch.ElapsedMilliseconds);
 
             if (DashboardScrape.IsTaskActive)
             {
@@ -112,7 +112,7 @@ namespace DarkStatsCore.Data
             _hostPadding.RemoveAll(h => h.Month != DateTime.Now.Month || h.Year != DateTime.Now.Year);
             if (stats.Sum(s => s.In + s.Out) + _hostPadding.Sum(h => h.In + h.Out) < _traffic.Sum(t => t.In + t.Out))
             {
-                Console.Write("Source stats are lower than db, calculating host padding... ");
+                Log.Information("Source stats are lower than db, calculating host padding...");
                 _hostPadding = new List<HostPadding>();
                 foreach (var t in _traffic.GroupBy(t => t.Ip))
                 {
@@ -166,7 +166,7 @@ namespace DarkStatsCore.Data
             }
             catch
             {
-                Console.Write("Initial scrape timed out, trying again. ");
+                Log.Warning("Initial scrape timed out, trying again...");
                 rawData = GetHtml(url);
             }
 

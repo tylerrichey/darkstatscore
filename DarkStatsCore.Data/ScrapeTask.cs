@@ -4,6 +4,7 @@ using System.Threading;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Serilog;
 
 namespace DarkStatsCore.Data
 {
@@ -39,13 +40,11 @@ namespace DarkStatsCore.Data
 
         private static void GatherData(string url)
         {
-            Console.Write(DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss") + " - Gathering data... ");
             var stopwatch = Stopwatch.StartNew();
             try
             {
                 Scraper.Scrape(url);
                 stopwatch.Stop();
-                Console.WriteLine("Done.");
                 var now = DateTime.Now;
                 TimeSpanSinceLastCheck = now.Subtract(LastGathered);
                 LastGathered = now;
@@ -57,15 +56,7 @@ namespace DarkStatsCore.Data
             }
             catch (Exception e)
             {
-                Console.WriteLine();
-                if (e.InnerException != null)
-                {
-                    Console.WriteLine(e.InnerException.Message + Environment.NewLine + e.InnerException.StackTrace);
-                }
-                else
-                {
-                    Console.WriteLine(e.Message + Environment.NewLine + e.StackTrace);
-                }
+                Log.Fatal(e, "Error on scrape");
             }
         }
     }

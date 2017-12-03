@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using DarkStatsCore.Data;
 using DarkStatsCore.Models;
 using StackExchange.Profiling;
+using Serilog;
 
 namespace DarkStatsCore.SignalR
 {
@@ -102,7 +103,7 @@ namespace DarkStatsCore.SignalR
             }
             catch (Exception exc)
             {
-                Console.WriteLine("Error pushing dashboard deltas: " + exc.InnerException != null ? exc.InnerException.Message : exc.Message);
+                Log.Fatal(exc, "Error pushing dashboard deltas");
             }
         }
 
