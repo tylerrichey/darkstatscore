@@ -31,7 +31,7 @@ public class SettingsLib
             }
             catch
             {
-                return TimeSpan.FromSeconds(60);
+                return TimeSpan.FromSeconds(300);
             }
         }
     }

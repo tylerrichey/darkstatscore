@@ -11,6 +11,7 @@ namespace DarkStatsCore
 {
     public class Program
     {
+        public static bool DisplayMiniProfiler { get; internal set; }
         private static string _listenUrl = "http://*:6677";
         
         public static int Main(string[] args)

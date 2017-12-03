@@ -33,6 +33,7 @@ namespace DarkStatsCore
             services.AddMiniProfiler(options =>
             {
                 options.RouteBasePath = "/profiler";
+                options.ResultsAuthorize = request => Program.DisplayMiniProfiler;
             }).AddEntityFramework();
         }
 

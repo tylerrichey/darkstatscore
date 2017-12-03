@@ -13,10 +13,11 @@ namespace DarkStatsCore.Data
         private static Task _scrapeTask;
         private static CancellationTokenSource _cancellationTokenSource;
         private static List<long> _scrapeTime = new List<long>();
-        private const int _scrapeTimeToKeep = 60;
+        private static int _scrapeTimeToKeep = 5;
         public static DateTime LastGathered = DateTime.MinValue;
         public static TimeSpan TimeSpanSinceLastCheck = TimeSpan.FromSeconds(0);
         public static double ScrapeTimeAvg => _scrapeTime.Count() == 0 ? 0 : _scrapeTime.Average();
+        public static EventHandler ScrapeSaved;
 
         public static void StartScrapeTask(TimeSpan saveTime, string url)
         {
@@ -24,6 +25,7 @@ namespace DarkStatsCore.Data
             {
                 _cancellationTokenSource.Cancel();
             }
+            _scrapeTimeToKeep = saveTime.TotalSeconds > 300 ? 1 : (int)Math.Round(300 / saveTime.TotalSeconds);
             _cancellationTokenSource = new CancellationTokenSource();
             _scrapeTask = RunScrapeTask(url, saveTime, _cancellationTokenSource.Token);
             DnsService.Start();
@@ -53,6 +55,7 @@ namespace DarkStatsCore.Data
                     _scrapeTime.RemoveAt(0);
                 }
                 _scrapeTime.Add(stopwatch.ElapsedMilliseconds);
+                ScrapeSaved?.Invoke(null, EventArgs.Empty);
             }
             catch (Exception e)
             {

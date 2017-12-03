@@ -13,7 +13,6 @@ namespace DarkStatsCore.Data
     public static class Scraper
     {
         public static List<long> Deltas = new List<long>();
-        public static EventHandler ScrapeSaved;
         private static long _lastCheckTotalBytes = 0;
         private static int _deltasToKeep = 30;
         private static List<HostPadding> _hostPadding = new List<HostPadding>();
@@ -82,11 +81,6 @@ namespace DarkStatsCore.Data
             }
             context.SaveChanges();
             Log.Information("Saving... ({SaveTimer}ms) ", stopwatch.ElapsedMilliseconds);
-
-            if (DashboardScrape.IsTaskActive)
-            {
-                ScrapeSaved?.Invoke(null, EventArgs.Empty);
-            }
             context.Dispose();
         }
 
