@@ -75,7 +75,7 @@ public class SettingsLib
         _context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
         if (!_context.Settings.Any())
         {
-            SetSaveTime(15);
+            SetSaveTime(300);
             SetDashboardRefreshTime(1000);
         }
     }    

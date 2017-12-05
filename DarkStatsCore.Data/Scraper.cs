@@ -151,17 +151,18 @@ namespace DarkStatsCore.Data
             _lastCheckTotalBytes = stats.Sum(s => s.In + s.Out);
         }
 
-        public static List<TrafficStats> ScrapeData(string url)
+        public static List<TrafficStats> ScrapeData(string url, HttpClient httpClient = null)
         {
             string rawData = string.Empty;
+            var _httpClient = httpClient ?? new HttpClient();
             try
             {
-                rawData = GetHtml(url);
+                rawData = GetHtml(url, _httpClient);
             }
             catch
             {
                 Log.Warning("Initial scrape timed out, trying again...");
-                rawData = GetHtml(url);
+                rawData = GetHtml(url, _httpClient);
             }
 
             var data = new HtmlDocument();
@@ -185,11 +186,12 @@ namespace DarkStatsCore.Data
             return trafficStats;
         }
 
-        private static string GetHtml(string url)
+        private static string GetHtml(string url, HttpClient httpClient)
         {
             //static HttpClient seems to be leaving sockets open for some reason
-            using (var httpClient = new HttpClient { Timeout = TimeSpan.FromMilliseconds(200) })
-            { 
+            using (httpClient)
+            {
+                httpClient.Timeout = TimeSpan.FromMilliseconds(200);
                 return httpClient.GetStringAsync(url + @"hosts/?full=yes&sort=total").Result;
             }
         }

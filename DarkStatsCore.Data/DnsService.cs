@@ -41,11 +41,11 @@ namespace DarkStatsCore.Data
             while (true)
             {
                 Log.Information("Running DNS service...");
-                var currentHour = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, 0, 0);
-                var lookups = await _context.TrafficStats
+                var currentHour = _context.TrafficStats.Max(t => t.Day);
+                var lookups = _context.TrafficStats
                         .Where(t => t.Day == currentHour && t.Ip != "::")
                         .Select(t => TryGetHostName(t.Ip))
-                        .ToListAsync();
+                        .ToList();
                 await Task.WhenAll(lookups);
                 Log.Information("DNS service complete; Successful lookups: {Successful} - Failures: {Failures}", lookups.Where(l => l.Result).Count(), lookups.Where(l => !l.Result).Count());
                 await Task.Delay(TimeSpan.FromMinutes(15));

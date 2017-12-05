@@ -3,9 +3,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
 using DarkStatsCore.Data.Models;
 using Serilog;
+using System.Net.Http;
 
 namespace DarkStatsCore.Data
 {
@@ -30,10 +30,13 @@ namespace DarkStatsCore.Data
 
         private async static Task ExecuteScrapeTask(string url, TimeSpan refreshTime, CancellationToken cancellationToken)
         {
-            while (!cancellationToken.IsCancellationRequested)
+            using (var httpClient = new HttpClient())
             {
-                Scrape(url);
-                await Task.Delay(refreshTime);
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    Scrape(url, httpClient);
+                    await Task.Delay(refreshTime);
+                }
             }
             _updateEvent = false;
             _dashboardDeltas = new List<HostDelta>();
@@ -41,11 +44,11 @@ namespace DarkStatsCore.Data
             Log.Information("Dashboard scrape stopped");
         }       
 
-        private static void Scrape(string url)
+        private static void Scrape(string url, HttpClient httpClient)
         {
             try
             {
-                var traffic = Scraper.ScrapeData(url);
+                var traffic = Scraper.ScrapeData(url, httpClient);
                 traffic.AdjustDeltas(_dashboardDeltas);
                 var elapsedMs = DateTime.Now.Subtract(_lastGathered).TotalMilliseconds;
                 _lastGathered = DateTime.Now;
