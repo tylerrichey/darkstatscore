@@ -30,13 +30,10 @@ namespace DarkStatsCore.Data
 
         private async static Task ExecuteScrapeTask(string url, TimeSpan refreshTime, CancellationToken cancellationToken)
         {
-            using (var httpClient = new HttpClient())
+            while (!cancellationToken.IsCancellationRequested)
             {
-                while (!cancellationToken.IsCancellationRequested)
-                {
-                    Scrape(url, httpClient);
-                    await Task.Delay(refreshTime);
-                }
+                Scrape(url);
+                await Task.Delay(refreshTime);
             }
             _updateEvent = false;
             _dashboardDeltas = new List<HostDelta>();
@@ -44,11 +41,11 @@ namespace DarkStatsCore.Data
             Log.Information("Dashboard scrape stopped");
         }       
 
-        private static void Scrape(string url, HttpClient httpClient)
+        private static void Scrape(string url)
         {
             try
             {
-                var traffic = Scraper.ScrapeData(url, httpClient);
+                var traffic = Scraper.ScrapeData(url);
                 traffic.AdjustDeltas(_dashboardDeltas);
                 var elapsedMs = DateTime.Now.Subtract(_lastGathered).TotalMilliseconds;
                 _lastGathered = DateTime.Now;
