@@ -21,6 +21,7 @@ namespace DarkStatsCore.Data
         private static List<TrafficStats> _traffic;
         public static void Scrape(string url)
         {
+            var lastRun = _currentHour;
             _currentHour = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, 0, 0);
             var stopwatch = Stopwatch.StartNew();
             var context = new DarkStatsDbContext();
@@ -30,7 +31,7 @@ namespace DarkStatsCore.Data
             {
                 throw new Exception("Aborting, scrape empty.");
             }
-            if (_traffic == null)
+            if (_traffic == null || _currentHour.Month != lastRun.Month)
             {
                 _traffic = context.TrafficStats
                     .Where(t => t.Day.Month == DateTime.Now.Month && t.Day.Year == DateTime.Now.Year)
