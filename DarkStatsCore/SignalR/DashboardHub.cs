@@ -38,6 +38,8 @@ namespace DarkStatsCore.SignalR
         public override Task OnDisconnectedAsync(Exception exception)
         {
             DashboardScrape.StopDashboardScrapeTask();
+            DashboardScrape.DataGathered -= DataGatheredEvent;
+            ScrapeTask.ScrapeSaved -= ScrapeSavedEvent;
             return base.OnDisconnectedAsync(exception);
         }
         
