@@ -19,6 +19,7 @@ namespace DarkStatsCore.Data
         private static List<TrafficCache> _hourCache = new List<TrafficCache>();
         private static DateTime _currentHour = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, 0, 0);
         private static List<TrafficStats> _traffic;
+
         public static void Scrape(string url)
         {
             var lastRun = _currentHour;

@@ -60,7 +60,9 @@ namespace DarkStatsCore.SignalR
 
         private void ScrapeSavedEvent(object sender, EventArgs e)
         {
-            _clients.Clients.All.SendAsync("GetCurrentDashboard", GetDashboardModel().Result).Wait();
+            //have to tell client to call function instead of passing data
+            //as the dbcontext will be disposed of in the callback thread
+            _clients.Clients.All.SendAsync("GetCurrentDashboard").Wait();
         }
 
         private void DataGatheredEvent(object sender, DashboardEventArgs e)
@@ -90,33 +92,27 @@ namespace DarkStatsCore.SignalR
                 LastGathered = ScrapeTask.LastGathered.ToString("MM/dd/yyyy hh:mm:ss tt"),
                 ScrapeTimeAvg = ScrapeTask.ScrapeTimeAvg
             };
+            
+            var traffic = await _context.TrafficStats
+                                .Where(t => t.Day.Month == DateTime.Now.Month && t.Day.Year == DateTime.Now.Year)
+                                .Select(t => new
+                                {
+                                    t.Day,
+                                    t.In,
+                                    t.Out
+                                })
+                                .ToListAsync();
 
-            try
-            {
-                var traffic = await _context.TrafficStats
-                                    .Where(t => t.Day.Month == DateTime.Now.Month && t.Day.Year == DateTime.Now.Year)
-                                    .Select(t => new
-                                    {
-                                        t.Day,
-                                        t.In,
-                                        t.Out
-                                    })
-                                    .ToListAsync();
-                dashboard.CurrentHour = traffic.Where(t => t.Day == CurrentHour)
+            dashboard.CurrentHour = traffic.Where(t => t.Day == CurrentHour)
                                             .Sum(t => t.In + t.Out)
                                             .BytesToBitsPsToString(DateTime.Now.Subtract(CurrentHour));
-                dashboard.CurrentMonthTotalIn = traffic.Sum(t => t.In);
-                dashboard.CurrentMonthTotalOut = traffic.Sum(t => t.Out);
-                var monthinout = (long)(dashboard.CurrentMonthTotalIn + dashboard.CurrentDayTotalOut);
-                dashboard.CurrentMonth = monthinout.BytesToBitsPsToString(DateTime.Now.Subtract(traffic.Min(t => t.Day)));
-                var today = traffic.Where(t => t.Day.Day == DateTime.Now.Day);
-                dashboard.CurrentDayTotalIn = today.Sum(t => t.In);
-                dashboard.CurrentDayTotalOut = today.Sum(t => t.Out);
-            }
-            catch (Exception)
-            {
-                //abyss
-            }
+            dashboard.CurrentMonthTotalIn = traffic.Sum(t => t.In);
+            dashboard.CurrentMonthTotalOut = traffic.Sum(t => t.Out);
+            var monthinout = (long)(dashboard.CurrentMonthTotalIn + dashboard.CurrentDayTotalOut);
+            dashboard.CurrentMonth = monthinout.BytesToBitsPsToString(DateTime.Now.Subtract(traffic.Min(t => t.Day)));
+            var today = traffic.Where(t => t.Day.Day == DateTime.Now.Day);
+            dashboard.CurrentDayTotalIn = today.Sum(t => t.In);
+            dashboard.CurrentDayTotalOut = today.Sum(t => t.Out);
             return dashboard;
         }
     }

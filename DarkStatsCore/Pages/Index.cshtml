@@ -115,9 +115,11 @@
 		processDeltasStream(deltas);
 	});
 
-	connection.on("GetCurrentDashboard", function(dashboard) {
-		processDashboardStream(dashboard);
-	});
+    connection.on("GetCurrentDashboard", function () {
+        connection.invoke("GetDashboard").then(function (dashboard) {
+            processDashboardStream(dashboard);
+        });
+    });
 
     function processDashboardStream(dashboard) {
         $("#monthstring").html(dashboard.currentMonthString);
