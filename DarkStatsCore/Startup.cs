@@ -27,8 +27,6 @@ namespace DarkStatsCore
             services.AddMvc();
             services.AddDbContext<DarkStatsDbContext>();
             services.AddSignalR();
-            services.AddScoped<DashboardHub>();
-            services.AddSingleton<Dashboard>();
             services.AddScoped<SettingsLib>();
             services.AddMiniProfiler(options =>
             {
@@ -58,7 +56,7 @@ namespace DarkStatsCore
             });
             app.UseSignalR(routes =>
             {
-                routes.MapHub<DashboardHub>("dashboard");
+                routes.MapHub<DashboardHub>("/dashboard");
             });
         }
     }

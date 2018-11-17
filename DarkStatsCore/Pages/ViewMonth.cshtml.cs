@@ -29,7 +29,7 @@ namespace DarkStatsCore.Pages
             using (MiniProfiler.Current.Step("Get Hosts"))
             {
                 TrafficStatsModel = _context.TrafficStats
-                                            .Where(t => allTime || (t.Day.Month == month && t.Day.Month == month))
+                                            .Where(t => allTime || (t.Day.Month == month && t.Day.Year == year))
                                             .GroupBy(t => (string.IsNullOrEmpty(t.Hostname) || t.Hostname == "(none)") ? t.Ip : t.Hostname)
                                             .OrderByDescending(t => t.Sum(s => s.In + s.Out))
                                             .Select(t => new TrafficStatsModel

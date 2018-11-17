@@ -17,14 +17,26 @@ namespace DarkStatsCore.Data
         private static bool _updateEvent;
         private static DateTime _lastGathered = DateTime.Now;
         private static Task _scrapeTask;
+        private static CancellationTokenSource _cancellationToken = new CancellationTokenSource();
+        private static int _numConnected = 0;
 
-        public static void StartDashboardScrapeTask(string url, TimeSpan refreshTime, CancellationToken cancellationToken)
+        public static void StartDashboardScrapeTask(string url, TimeSpan refreshTime)
         {
+            _numConnected++;
             if (!IsTaskActive)
             {
                 Log.Information("Starting dashboard scrape...");
                 _updateEvent = false;
-                _scrapeTask = ExecuteScrapeTask(url, refreshTime, cancellationToken);
+                _scrapeTask = ExecuteScrapeTask(url, refreshTime, _cancellationToken.Token);
+            }
+        }
+
+        public static void StopDashboardScrapeTask()
+        {
+            _numConnected--;
+            if (_numConnected <= 0)
+            {
+                _cancellationToken.Cancel();
             }
         }
 
@@ -39,7 +51,7 @@ namespace DarkStatsCore.Data
             _dashboardDeltas = new List<HostDelta>();
             _scrapeTask = null;
             Log.Information("Dashboard scrape stopped");
-        }       
+        }
 
         private static void Scrape(string url)
         {
