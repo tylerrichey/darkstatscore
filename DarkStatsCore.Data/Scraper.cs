@@ -20,6 +20,8 @@ namespace DarkStatsCore.Data
         private static DateTime _currentHour = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, 0, 0);
         private static List<TrafficStats> _traffic;
 
+        private static HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromMilliseconds(200) };
+
         public static void Scrape(string url)
         {
             var lastRun = _currentHour;
@@ -187,13 +189,13 @@ namespace DarkStatsCore.Data
             return trafficStats;
         }
 
-        private static string GetHtml(string url)
-        {
+        private static string GetHtml(string url) => _httpClient.GetStringAsync(url + @"hosts/?full=yes&sort=total").Result;
+        //{
             //static HttpClient seems to be leaving sockets open for some reason
-            using (var httpClient = new HttpClient { Timeout = TimeSpan.FromMilliseconds(200) })
-            {
-                return httpClient.GetStringAsync(url + @"hosts/?full=yes&sort=total").Result;
-            }
-        }
+            //using (var httpClient = new HttpClient { Timeout = TimeSpan.FromMilliseconds(200) })
+            //{
+                //return httpClient.GetStringAsync(url + @"hosts/?full=yes&sort=total").Result;
+            //}
+        //}
     }
 }

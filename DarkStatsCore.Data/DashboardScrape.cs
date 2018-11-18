@@ -19,9 +19,11 @@ namespace DarkStatsCore.Data
         private static Task _scrapeTask;
         private static CancellationTokenSource _cancellationToken = new CancellationTokenSource();
         private static int _numConnected = 0;
+        private static SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
 
         public static void StartDashboardScrapeTask(string url, TimeSpan refreshTime)
         {
+            _lock.Wait();
             _numConnected++;
             if (!IsTaskActive)
             {
@@ -29,15 +31,18 @@ namespace DarkStatsCore.Data
                 _updateEvent = false;
                 _scrapeTask = ExecuteScrapeTask(url, refreshTime, _cancellationToken.Token);
             }
+            _lock.Release();
         }
 
         public static void StopDashboardScrapeTask()
         {
+            _lock.Wait();
             _numConnected--;
             if (_numConnected <= 0)
             {
                 _cancellationToken.Cancel();
             }
+            _lock.Release();
         }
 
         private async static Task ExecuteScrapeTask(string url, TimeSpan refreshTime, CancellationToken cancellationToken)
