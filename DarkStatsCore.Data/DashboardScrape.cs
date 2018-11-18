@@ -17,7 +17,7 @@ namespace DarkStatsCore.Data
         private static bool _updateEvent;
         private static DateTime _lastGathered = DateTime.Now;
         private static Task _scrapeTask;
-        private static CancellationTokenSource _cancellationToken = new CancellationTokenSource();
+        private static CancellationTokenSource _cancellationToken;
         private static int _numConnected = 0;
         private static SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
 
@@ -29,6 +29,7 @@ namespace DarkStatsCore.Data
             {
                 Log.Information("Starting dashboard scrape...");
                 _updateEvent = false;
+                _cancellationToken = new CancellationTokenSource();
                 _scrapeTask = ExecuteScrapeTask(url, refreshTime, _cancellationToken.Token);
             }
             _lock.Release();
@@ -41,6 +42,10 @@ namespace DarkStatsCore.Data
             if (_numConnected <= 0)
             {
                 _cancellationToken.Cancel();
+                DataGathered -= DataGathered.GetInvocationList()
+                    .Select(c => c as EventHandler<DashboardEventArgs>)
+                    .ToList()
+                    .Last();
             }
             _lock.Release();
         }
