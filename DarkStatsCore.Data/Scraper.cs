@@ -185,17 +185,10 @@ namespace DarkStatsCore.Data
                            LastSeen = x.ElementAt(6).InnerText,
                            Day = _currentHour
                        })
-                       .ToList();
+                       .ToList(); 
             return trafficStats;
         }
 
         private static string GetHtml(string url) => _httpClient.GetStringAsync(url + @"hosts/?full=yes&sort=total").Result;
-        //{
-            //static HttpClient seems to be leaving sockets open for some reason
-            //using (var httpClient = new HttpClient { Timeout = TimeSpan.FromMilliseconds(200) })
-            //{
-                //return httpClient.GetStringAsync(url + @"hosts/?full=yes&sort=total").Result;
-            //}
-        //}
     }
 }

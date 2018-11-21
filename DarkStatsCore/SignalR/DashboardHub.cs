@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using DarkStatsCore.Models;
 using Microsoft.AspNetCore.SignalR;
 using DarkStatsCore.Data;
-using System.Threading;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using Serilog;
+using Microsoft.AspNetCore.Http;
 
 namespace DarkStatsCore.SignalR
 {
@@ -28,45 +28,25 @@ namespace DarkStatsCore.SignalR
 
         public override Task OnConnectedAsync()
         {
-            DashboardScrape.DataGathered += DataGatheredEvent;
-            ScrapeTask.ScrapeSaved += ScrapeSavedEvent;
-            DashboardScrape.StartDashboardScrapeTask(_settings.Url, _settings.DashboardRefreshTime);
-
+            DashboardScrape.StartDashboardScrapeTask(_settings.Url, _settings.DashboardRefreshTime, Context.ConnectionId, DataGatheredEvent, ScrapeSavedEvent);
             return base.OnConnectedAsync();
         }
 
         public override Task OnDisconnectedAsync(Exception exception)
         {
-            DashboardScrape.StopDashboardScrapeTask();
-            //cant unsub this way
-            DashboardScrape.DataGathered -= DataGatheredEvent;
-            ScrapeTask.ScrapeSaved -= ScrapeSavedEvent;
-            DashboardScrape.DataGathered = null;
-            ScrapeTask.ScrapeSaved = null;
+            DashboardScrape.StopDashboardScrapeTask(Context.ConnectionId);
             return base.OnDisconnectedAsync(exception);
         }
         
-        public async Task<DashboardModel> GetDashboard()
-		{
-            return await GetCurrentDashboard();
-		}
+        public async Task<DashboardModel> GetDashboard() => await GetCurrentDashboard();
 
-        public IEnumerable<long> GetCurrentDeltas()
-        {
-            return Scraper.Deltas;
-        }
+        public IEnumerable<long> GetCurrentDeltas() => Scraper.Deltas;
 
-        public async Task<DashboardModel> GetCurrentDashboard()
-        {
-            return await GetDashboardModel();
-        }
+        public async Task<DashboardModel> GetCurrentDashboard() => await GetDashboardModel();
 
-        private void ScrapeSavedEvent(object sender, EventArgs e)
-        {
-            //have to tell client to call function instead of passing data
-            //as the dbcontext will be disposed of in the callback thread
-            _clients.Clients.All.SendAsync("GetCurrentDashboard").Wait();
-        }
+        //have to tell client to call function instead of passing data
+        //as the dbcontext will be disposed of in the callback thread
+        private void ScrapeSavedEvent(object sender, EventArgs e) => _clients.Clients.All.SendAsync("GetCurrentDashboard").Wait();
 
         private void DataGatheredEvent(object sender, DashboardEventArgs e)
         {

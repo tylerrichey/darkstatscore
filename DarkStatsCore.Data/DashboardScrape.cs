@@ -18,13 +18,16 @@ namespace DarkStatsCore.Data
         private static DateTime _lastGathered = DateTime.Now;
         private static Task _scrapeTask;
         private static CancellationTokenSource _cancellationToken;
-        private static int _numConnected = 0;
         private static SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
+        private static List<(string clientId, EventHandler<DashboardEventArgs> dashEvent, EventHandler saveEvent)> _subs = 
+            new List<(string clientId, EventHandler<DashboardEventArgs> dashEvent, EventHandler saveEvent)>();
 
-        public static void StartDashboardScrapeTask(string url, TimeSpan refreshTime)
+        public static void StartDashboardScrapeTask(string url, TimeSpan refreshTime, string clientId, EventHandler<DashboardEventArgs> dashEvent, EventHandler saveEvent)
         {
             _lock.Wait();
-            _numConnected++;
+            _subs.Add((clientId, dashEvent, saveEvent));
+            DataGathered += dashEvent;
+            ScrapeTask.ScrapeSaved += saveEvent;
             if (!IsTaskActive)
             {
                 Log.Information("Starting dashboard scrape...");
@@ -35,18 +38,17 @@ namespace DarkStatsCore.Data
             _lock.Release();
         }
 
-        public static void StopDashboardScrapeTask()
+        public static void StopDashboardScrapeTask(string clientId)
         {
             _lock.Wait();
-            _numConnected--;
-            if (_numConnected <= 0)
+            if (_subs.Count == 1)
             {
                 _cancellationToken.Cancel();
-                DataGathered -= DataGathered.GetInvocationList()
-                    .Select(c => c as EventHandler<DashboardEventArgs>)
-                    .ToList()
-                    .Last();
             }
+            var handlers = _subs.Find(s => s.clientId == clientId);
+            DataGathered -= handlers.dashEvent;
+            ScrapeTask.ScrapeSaved -= handlers.saveEvent;
+            _subs.RemoveAll(s => s.clientId == clientId);
             _lock.Release();
         }
 
@@ -80,6 +82,7 @@ namespace DarkStatsCore.Data
                 }
                 else
                 {
+                    //skip first update to get deltas
                     _updateEvent = true;
                 }
             }
