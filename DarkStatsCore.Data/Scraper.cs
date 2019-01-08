@@ -6,21 +6,25 @@ using System.Diagnostics;
 using HtmlAgilityPack;
 using Microsoft.EntityFrameworkCore;
 using DarkStatsCore.Data.Models;
+using Serilog;
 
 namespace DarkStatsCore.Data
 {
     public static class Scraper
     {
         public static List<long> Deltas = new List<long>();
-        public static EventHandler ScrapeSaved;
         private static long _lastCheckTotalBytes = 0;
         private static int _deltasToKeep = 30;
         private static List<HostPadding> _hostPadding = new List<HostPadding>();
         private static List<TrafficCache> _hourCache = new List<TrafficCache>();
         private static DateTime _currentHour = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, 0, 0);
         private static List<TrafficStats> _traffic;
+
+        private static HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromMilliseconds(200) };
+
         public static void Scrape(string url)
         {
+            var lastRun = _currentHour;
             _currentHour = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, 0, 0);
             var stopwatch = Stopwatch.StartNew();
             var context = new DarkStatsDbContext();
@@ -30,7 +34,7 @@ namespace DarkStatsCore.Data
             {
                 throw new Exception("Aborting, scrape empty.");
             }
-            if (_traffic == null)
+            if (_traffic == null || _currentHour.Month != lastRun.Month)
             {
                 _traffic = context.TrafficStats
                     .Where(t => t.Day.Month == DateTime.Now.Month && t.Day.Year == DateTime.Now.Year)
@@ -39,9 +43,8 @@ namespace DarkStatsCore.Data
             PopulateTrafficCache();
             CalculateHostPadding(stats);
             AdjustDeltas(stats);
-            Console.Write("({0}ms) ", stopwatch.ElapsedMilliseconds);
+            Log.Information("Gathering Data... ({DataTimer}ms) ", stopwatch.ElapsedMilliseconds);
             stopwatch.Restart();
-            Console.Write("Saving... ");
             foreach (var s in stats)
             {
                 if (!_hourCache.Any(c => c.Ip == s.Ip))
@@ -81,12 +84,7 @@ namespace DarkStatsCore.Data
                 }
             }
             context.SaveChanges();
-            Console.Write("({0}ms) ", stopwatch.ElapsedMilliseconds);
-
-            if (DashboardScrape.IsTaskActive)
-            {
-                ScrapeSaved?.Invoke(null, EventArgs.Empty);
-            }
+            Log.Information("Saving... ({SaveTimer}ms) ", stopwatch.ElapsedMilliseconds);
             context.Dispose();
         }
 
@@ -112,7 +110,7 @@ namespace DarkStatsCore.Data
             _hostPadding.RemoveAll(h => h.Month != DateTime.Now.Month || h.Year != DateTime.Now.Year);
             if (stats.Sum(s => s.In + s.Out) + _hostPadding.Sum(h => h.In + h.Out) < _traffic.Sum(t => t.In + t.Out))
             {
-                Console.Write("Source stats are lower than db, calculating host padding... ");
+                Log.Information("Source stats are lower than db, calculating host padding...");
                 _hostPadding = new List<HostPadding>();
                 foreach (var t in _traffic.GroupBy(t => t.Ip))
                 {
@@ -166,7 +164,7 @@ namespace DarkStatsCore.Data
             }
             catch
             {
-                Console.Write("Initial scrape timed out, trying again. ");
+                Log.Warning("Initial scrape timed out, trying again...");
                 rawData = GetHtml(url);
             }
 
@@ -187,17 +185,10 @@ namespace DarkStatsCore.Data
                            LastSeen = x.ElementAt(6).InnerText,
                            Day = _currentHour
                        })
-                       .ToList();
+                       .ToList(); 
             return trafficStats;
         }
 
-        private static string GetHtml(string url)
-        {
-            //static HttpClient seems to be leaving sockets open for some reason
-            using (var httpClient = new HttpClient { Timeout = TimeSpan.FromMilliseconds(200) })
-            { 
-                return httpClient.GetStringAsync(url + @"hosts/?full=yes&sort=total").Result;
-            }
-        }
+        private static string GetHtml(string url) => _httpClient.GetStringAsync(url + @"hosts/?full=yes&sort=total").Result;
     }
 }

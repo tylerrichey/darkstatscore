@@ -11,9 +11,10 @@ using System;
 namespace DarkStatsCore.Data.Migrations
 {
     [DbContext(typeof(DarkStatsDbContext))]
-    partial class DarkStatsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20171202200717_indexes")]
+    partial class indexes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

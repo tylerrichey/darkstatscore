@@ -20,8 +20,9 @@ namespace DarkStatsCore.Pages
             SettingsModel = new SettingsModel
             {
                 Url = _settings.Url,
-                SaveTime = _settings.SaveTime.Seconds,
-                DashboardRefreshTime = _settings.DashboardRefreshTime.TotalMilliseconds
+                SaveTime = (int)_settings.SaveTime.TotalSeconds,
+                DashboardRefreshTime = _settings.DashboardRefreshTime.TotalMilliseconds,
+                DisplayMiniProfiler = Program.DisplayMiniProfiler
             };
         }
 
@@ -36,6 +37,7 @@ namespace DarkStatsCore.Pages
             _settings.SetSaveTime(SettingsModel.SaveTime);
             _settings.SetDashboardRefreshTime(SettingsModel.DashboardRefreshTime);
             _settings.SetUrl(SettingsModel.Url);
+            Program.DisplayMiniProfiler = SettingsModel.DisplayMiniProfiler;
             if (oldSaveTime != _settings.SaveTime)
             {
                 ScrapeTask.StartScrapeTask(_settings.SaveTime, _settings.Url);

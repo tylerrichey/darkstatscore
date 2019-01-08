@@ -27,13 +27,16 @@ namespace DarkStatsCore
             services.AddMvc();
             services.AddDbContext<DarkStatsDbContext>();
             services.AddSignalR();
-            services.AddScoped<DashboardHub>();
-            services.AddSingleton<Dashboard>();
             services.AddScoped<SettingsLib>();
+            services.AddMiniProfiler(options =>
+            {
+                options.RouteBasePath = "/profiler";
+                options.ResultsAuthorize = request => Program.DisplayMiniProfiler;
+            }).AddEntityFramework();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -43,8 +46,7 @@ namespace DarkStatsCore
             {
                 app.UseExceptionHandler("/Error");
             }
-
-			loggerFactory.AddConsole(Configuration.GetSection("Logging"));
+            app.UseMiniProfiler();
             app.UseStaticFiles();
             app.UseMvc(routes =>
             {
@@ -54,7 +56,7 @@ namespace DarkStatsCore
             });
             app.UseSignalR(routes =>
             {
-                routes.MapHub<DashboardHub>("dashboard");
+                routes.MapHub<DashboardHub>("/dashboard");
             });
         }
     }

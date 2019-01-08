@@ -1,5 +1,5 @@
 [
-  [ "node_modules/@aspnet/signalr-client/dist/browser/signalr-client*.min.js", "wwwroot/lib/signalr/" ],
+  [ "node_modules/@aspnet/signalr/dist/browser/*.min.js*", "wwwroot/lib/signalr/" ],
   [ "node_modules/bootstrap/dist/js/bootstrap.min.js*", "wwwroot/lib/bootstrap/" ],
   [ "node_modules/bootstrap/dist/css/bootstrap.min.css*", "wwwroot/lib/bootstrap/" ],
   [ "node_modules/chartist/dist/chartist.min.*", "wwwroot/lib/chartist/" ],

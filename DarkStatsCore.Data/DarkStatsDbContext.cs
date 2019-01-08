@@ -21,7 +21,11 @@ namespace DarkStatsCore.Data
 		{
             modelBuilder.Entity<TrafficStats>()
                         .HasKey(t => new { t.Ip, t.Day });
-		}
+            modelBuilder.Entity<TrafficStats>()
+                .HasIndex(t => new { t.Day, t.In, t.Out });
+            modelBuilder.Entity<TrafficStats>()
+                .HasIndex(t => new { t.Ip, t.Day, t.Hostname, t.In, t.LastSeen, t.Mac, t.Out });
+        }
     }
 
     public class TrafficStats

@@ -2,7 +2,7 @@
   "name": "darkstatscore",
   "description": "A bandwidth monitoring tool in ASP.NET Core",
   "dependencies": {
-    "@aspnet/signalr-client": "^1.0.0-alpha2-final",
+    "@aspnet/signalr": "^1.0.4",
     "bootstrap": "^3.3.7",
     "chartist": "^0.11.0",
     "chartist-plugin-tooltips": "0.0.17",
