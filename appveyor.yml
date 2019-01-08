@@ -25,7 +25,7 @@ artifacts:
 deploy:
   provider: GitHub
   auth_token:
-    secure: +ZV4dvj9docTZYJbVLnz3dcOM2pyUpyLYp5jNnq4GoTPKPva51RBx8pWEXRYzKwd
+    secure: b5YDlSh87i+AGaeS6eu7DBwQOYx/3T6GNUmdUXDyOuNhoS66K3S1c0wKUK/veH33
   artifact: darkstatscore-debian,darkstatscore-win10,darkstatscore-osx
   draft: true
   prerelease: false
