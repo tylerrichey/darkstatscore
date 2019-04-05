@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations;
 public class SettingsModel
 {
     [Required]
-    [Url]
     [ValidDarkStatsUrl]
     public string Url { get; set; }
     [Required]

@@ -28,19 +28,19 @@ namespace DarkStatsCore.SignalR
 
         public override Task OnConnectedAsync()
         {
-            DashboardScrape.StartDashboardScrapeTask(_settings.Url, _settings.DashboardRefreshTime, Context.ConnectionId, DataGatheredEvent, ScrapeSavedEvent);
+            DashboardGatherTask.StartDashboardGatherTask(_settings.DashboardRefreshTime, Context.ConnectionId, DataGatheredEvent, ScrapeSavedEvent);
             return base.OnConnectedAsync();
         }
 
         public override Task OnDisconnectedAsync(Exception exception)
         {
-            DashboardScrape.StopDashboardScrapeTask(Context.ConnectionId);
+            DashboardGatherTask.StopDashboardGatherTask(Context.ConnectionId);
             return base.OnDisconnectedAsync(exception);
         }
         
         public async Task<DashboardModel> GetDashboard() => await GetCurrentDashboard();
 
-        public IEnumerable<long> GetCurrentDeltas() => Scraper.Deltas;
+        public IEnumerable<long> GetCurrentDeltas() => DataGatherTask.DataSource.GetDashboardDeltas();
 
         public async Task<DashboardModel> GetCurrentDashboard() => await GetDashboardModel();
 
@@ -60,6 +60,7 @@ namespace DarkStatsCore.SignalR
                         Hostname = (string.IsNullOrEmpty(h.Hostname) || h.Hostname == "(none)") ? h.Ip : h.Hostname,
                         Speed = h.LastCheckDeltaBytes
                     })
+                    .OrderByDescending(h => h.Speed)
                 }).Wait();
             }
             catch (Exception exc)
@@ -72,8 +73,8 @@ namespace DarkStatsCore.SignalR
         {
             var dashboard = new DashboardModel
             {
-                LastGathered = ScrapeTask.LastGathered.ToString("MM/dd/yyyy hh:mm:ss tt"),
-                ScrapeTimeAvg = ScrapeTask.ScrapeTimeAvg
+                LastGathered = DataGatherTask.LastGathered.ToString("MM/dd/yyyy hh:mm:ss tt"),
+                ScrapeTimeAvg = DataGatherTask.ScrapeTimeAvg
             };
             
             var traffic = await _context.TrafficStats
@@ -92,7 +93,7 @@ namespace DarkStatsCore.SignalR
             dashboard.CurrentMonthTotalIn = traffic.Sum(t => t.In);
             dashboard.CurrentMonthTotalOut = traffic.Sum(t => t.Out);
             var monthinout = (long)(dashboard.CurrentMonthTotalIn + dashboard.CurrentDayTotalOut);
-            dashboard.CurrentMonth = monthinout.BytesToBitsPsToString(DateTime.Now.Subtract(traffic.Min(t => t.Day)));
+            dashboard.CurrentMonth = traffic.Count > 0 ? monthinout.BytesToBitsPsToString(DateTime.Now.Subtract(traffic.Min(t => t.Day))) : "0";
             var today = traffic.Where(t => t.Day.Day == DateTime.Now.Day);
             dashboard.CurrentDayTotalIn = today.Sum(t => t.In);
             dashboard.CurrentDayTotalOut = today.Sum(t => t.Out);

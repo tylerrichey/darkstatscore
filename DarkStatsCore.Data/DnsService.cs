@@ -24,9 +24,8 @@ namespace DarkStatsCore.Data
 
         public static void GetHostName(TrafficStats trafficStats)
         {
-            string hostName;
-            _hosts.TryGetValue(trafficStats.Ip, out hostName);
-            trafficStats.Hostname = string.IsNullOrEmpty(hostName) ? trafficStats.Hostname : hostName;
+            _hosts.TryGetValue(trafficStats.Ip, out string hostName);
+            trafficStats.Hostname = hostName ?? trafficStats.Hostname;
         }
 
         public static string GetHostName(string ip, string hostName)
@@ -34,6 +33,12 @@ namespace DarkStatsCore.Data
             var _hostName = hostName;
             _hosts.TryGetValue(ip, out hostName);
             return hostName ?? _hostName;
+        }
+
+        public static string GetHostName(string ip)
+        {
+            _hosts.TryGetValue(ip, out var hostName);
+            return hostName ?? ip;
         }
 
         private static async Task DnsTask()
@@ -54,8 +59,7 @@ namespace DarkStatsCore.Data
         
         private static async Task<bool> TryGetHostName(string ipString)
         {
-            IPAddress ip;
-            if (!IPAddress.TryParse(ipString, out ip))
+            if (!IPAddress.TryParse(ipString, out IPAddress ip))
             {
                 return false;
             }

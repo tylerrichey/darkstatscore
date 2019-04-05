@@ -10,6 +10,7 @@ using Serilog;
 
 namespace DarkStatsCore.Data
 {
+    //move to non-static, instantiated in datasource
     public static class Scraper
     {
         public static List<long> Deltas = new List<long>();
@@ -30,7 +31,7 @@ namespace DarkStatsCore.Data
             var context = new DarkStatsDbContext();
             context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
             var stats = ScrapeData(url);
-            if (stats.Count() == 0)
+            if (stats.Count == 0)
             {
                 throw new Exception("Aborting, scrape empty.");
             }
@@ -68,8 +69,8 @@ namespace DarkStatsCore.Data
                 }
 
                 var cache = _hourCache.First(m => m.Ip == s.Ip);
-                s.In = s.In - cache.In;
-                s.Out = s.Out - cache.Out;
+                s.In -= cache.In;
+                s.Out -= cache.Out;
 
                 if (last.Day == s.Day)
                 {
@@ -128,15 +129,15 @@ namespace DarkStatsCore.Data
                     }
                 }
             }
-            if (_hostPadding.Any())
+            if (_hostPadding.Count > 0)
             {
                 stats.ForEach(s =>
                 {
-                    var padding = _hostPadding.FirstOrDefault(h => h.Ip == s.Ip);
+                    var padding = _hostPadding.Find(h => h.Ip == s.Ip);
                     if (padding != null)
                     {
-                        s.In = s.In + padding.In;
-                        s.Out = s.Out + padding.Out;
+                        s.In += padding.In;
+                        s.Out += padding.Out;
                     }
                 });
             }
@@ -146,7 +147,7 @@ namespace DarkStatsCore.Data
         {
             if (_lastCheckTotalBytes > 0)
             {
-                if (Deltas.Count() == _deltasToKeep)
+                if (Deltas.Count == _deltasToKeep)
                 {
                     Deltas.RemoveAt(0);
                 }
@@ -171,7 +172,7 @@ namespace DarkStatsCore.Data
             var data = new HtmlDocument();
             data.LoadHtml(rawData);
 
-            var trafficStats = data.DocumentNode
+            return data.DocumentNode
                        .Descendants("tr")
                        .Select(x => x.Elements("td"))
                        .Where(x => x.Count() == 7)
@@ -185,10 +186,9 @@ namespace DarkStatsCore.Data
                            LastSeen = x.ElementAt(6).InnerText,
                            Day = _currentHour
                        })
-                       .ToList(); 
-            return trafficStats;
+                       .ToList();
         }
 
-        private static string GetHtml(string url) => _httpClient.GetStringAsync(url + @"hosts/?full=yes&sort=total").Result;
+        private static string GetHtml(string url) => _httpClient.GetStringAsync(url + "hosts/?full=yes&sort=total").Result;
     }
 }

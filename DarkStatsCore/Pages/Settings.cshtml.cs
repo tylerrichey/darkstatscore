@@ -38,9 +38,9 @@ namespace DarkStatsCore.Pages
             _settings.SetDashboardRefreshTime(SettingsModel.DashboardRefreshTime);
             _settings.SetUrl(SettingsModel.Url);
             Program.DisplayMiniProfiler = SettingsModel.DisplayMiniProfiler;
-            if (oldSaveTime != _settings.SaveTime)
+            if (oldSaveTime != _settings.SaveTime || DataGatherTask.DataSource == null)
             {
-                ScrapeTask.StartScrapeTask(_settings.SaveTime, _settings.Url);
+                DataGatherTask.StartDataGatherTask(_settings.SaveTime, _settings.Url);
             }
             return RedirectToPage("/Index");
         }
