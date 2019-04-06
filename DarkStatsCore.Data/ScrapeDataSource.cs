@@ -49,6 +49,7 @@ namespace DarkStatsCore.Data
                 }
                 await Task.Delay(saveTime);
             }
+
         }
 
         public override async Task DashboardDataTask(TimeSpan refreshTime, CancellationToken cancellationToken)

@@ -78,7 +78,7 @@ namespace DarkStatsCore.Data
             {
                 Hostname = DnsService.GetHostName(d.Key),
                 Ip = d.Key,
-                LastCheckDeltaBytes = (d.Value.Out + d.Value.In) / 8
+                LastCheckDeltaBytes = (d.Value.Out + d.Value.In)
             })
             .ToList();
     }

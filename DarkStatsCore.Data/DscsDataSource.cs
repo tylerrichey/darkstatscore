@@ -147,6 +147,11 @@ namespace DarkStatsCore.Data
                     Log.Information("Waiting 5 seconds and then attempting to re-connect...");
                     await Task.Delay(5000);
                 }
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    //make sure finally block runs
+                    break;
+                }
             }
         }
 
