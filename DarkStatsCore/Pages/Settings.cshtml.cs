@@ -42,7 +42,7 @@ namespace DarkStatsCore.Pages
             {
                 DataGatherTask.StartDataGatherTask(_settings.SaveTime, _settings.Url);
             }
-            return RedirectToPage("/Index");
+            return RedirectToPage("/Settings");
         }
     }
 }

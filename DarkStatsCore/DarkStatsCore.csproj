@@ -21,4 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DarkStatsCore.Data\DarkStatsCore.Data.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="db\" />
+  </ItemGroup>
 </Project>

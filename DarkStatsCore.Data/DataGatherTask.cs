@@ -26,7 +26,7 @@ namespace DarkStatsCore.Data
             }
             _cancellationTokenSource = new CancellationTokenSource();
             DataSource = DataSource.GetForUrl(url);
-            _dataGatherTask = DataSource.GatherDataTask(saveTime, _cancellationTokenSource.Token);
+            _dataGatherTask = Task.Run(() => DataSource.GatherDataTask(saveTime, _cancellationTokenSource.Token));
             DnsService.Start();
         }
     }
