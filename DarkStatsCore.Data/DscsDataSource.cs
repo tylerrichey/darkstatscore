@@ -16,12 +16,16 @@ namespace DarkStatsCore.Data
     {
         private DateTime _lastGatheredSave = DateTime.MinValue;
         private DateTime _lastGatheredDash = DateTime.MinValue;
-        private DateTime _lastData = DateTime.Now;
         private TcpClient _client;
         private NetworkStream _stream;
         private int _updateFrequencySeconds;
-        private bool _dashboardActive, _firstDashUpdate, _updateFrequency;
+        private bool _dashboardActive, _firstDashUpdate;
         private readonly List<long> _deltas = new List<long>();
+        private List<Dictionary<string, DscsModel>> _dashUpdates = new List<Dictionary<string, DscsModel>>();
+        private Task _saveTask = Task.CompletedTask;
+        private Timer _dataCheckTimer;
+        private CancellationToken _cancellationToken;
+        private TimeSpan _saveTime;
 
         public DscsDataSource(string url) : base(url) { }
 
@@ -42,106 +46,103 @@ namespace DarkStatsCore.Data
             });
         }
 
-        public override async Task GatherDataTask(TimeSpan saveTime, CancellationToken cancellationToken)
+        public override Task GatherDataTask(TimeSpan saveTime, CancellationToken cancellationToken)
         {
-            var dashUpdates = new List<Dictionary<string, DscsModel>>();
-            while (true)
+            _saveTime = saveTime;
+            _cancellationToken = cancellationToken;
+            UpdateFrequency(saveTime.TotalSeconds.ToInt32());
+            return Task.CompletedTask;
+        }
+
+        private async Task RetrieveData()
+        {
+            try
             {
-                var saveTask = Task.CompletedTask;
-                try
+                if (_cancellationToken.IsCancellationRequested)
+                {
+                    _dataCheckTimer = null;
+                    return;
+                }
+                if (_client == null || !_client.Connected)
                 {
                     _client = Connect();
                     _stream = _client.GetStream();
-                    UpdateFrequency(saveTime.TotalSeconds.ToInt32());
+                }
+                var ping = Encoding.ASCII.GetBytes(_updateFrequencySeconds.ToString() + '\n');
+                await _stream.WriteAsync(ping, 0, ping.Length);
 
-                    while (_stream.CanRead && !cancellationToken.IsCancellationRequested)
-                    {
-                        if (DateTime.Now.Subtract(_lastData).TotalSeconds < _updateFrequencySeconds)
-                        {
-                            continue;
-                        }
+                var buffer = new byte[51200];
+                int numberOfBytesRead = 0;
+                numberOfBytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length);
+                var msg = Encoding.ASCII.GetString(buffer, 0, numberOfBytesRead);
 
-                        var ping = Encoding.ASCII.GetBytes(_updateFrequencySeconds.ToString() + '\n');
-                        await _stream.WriteAsync(ping, 0, ping.Length);
-
-                        var buffer = new byte[51200];
-                        int numberOfBytesRead = 0;
-                        numberOfBytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length);
-                        var msg = Encoding.ASCII.GetString(buffer, 0, numberOfBytesRead);
-
-                        Dictionary<string, DscsModel> data;
-                        try
-                        {
-                            data = JsonConvert.DeserializeObject<Dictionary<string, DscsModel>>(msg);
-                        }
-                        catch (Exception e)
-                        {
-                            Log.Error(e, "Error parsing data: " + msg);
-                            continue;
-                        }
-                        _lastData = DateTime.Now;
-                        if (_dashboardActive)
-                        {
-                            dashUpdates.Add(data);
-                            if (_firstDashUpdate)
-                            {
-                                var update = data.ToHostDeltas();
-                                foreach (var d in update)
-                                {
-                                    d.LastCheckDeltaBytes /= DateTime.Now.Subtract(_lastGatheredSave).Seconds;
-                                }
-                                DashboardGatherTask.DataGathered?.Invoke(null, new DashboardEventArgs(
-                                    update, _updateFrequencySeconds * 1000));
-                                _firstDashUpdate = false;
-                            }
-                            else
-                            {
-                                var elapsedMs = DateTime.Now.Subtract(_lastGatheredDash).TotalMilliseconds;
-                                var deltas = data.ToHostDeltas();
-                                DashboardGatherTask.DataGathered?.Invoke(null, new DashboardEventArgs(
-                                    deltas, elapsedMs));
-                            }
-                            _lastGatheredDash = DateTime.Now;
-                        }
-                        if (!_dashboardActive || DateTime.Now.Subtract(_lastGatheredSave).Seconds >= saveTime.TotalSeconds)
-                        {
-                            var dash = dashUpdates.SelectMany(d => d.ToTrafficStats());
-                            var ts = data.ToTrafficStats().ToList();
-                            if (dash.Any())
-                            {
-                                foreach (var t in ts)
-                                {
-                                    var dashInfo = dash.Where(d => d.Ip == t.Ip);
-                                    t.In += dashInfo.Sum(d => d.In);
-                                    t.Out += dashInfo.Sum(d => d.Out);
-                                }
-                                dashUpdates.Clear();
-                            }
-
-                            await saveTask;
-                            saveTask = UpdateDatabase(ts);
-                            _lastGatheredSave = DateTime.Now;
-                            if (_deltas.Count == 30)
-                            {
-                                _deltas.RemoveAt(0);
-                            }
-                            _deltas.Add(ts.Sum(t => t.In + t.Out));
-                        }
-                        await Task.Delay(50);
-                    }
+                Dictionary<string, DscsModel> data;
+                try
+                {
+                    data = JsonConvert.DeserializeObject<Dictionary<string, DscsModel>>(msg);
                 }
                 catch (Exception e)
                 {
-                    Log.Fatal(e, "Error on Dscs data gather.");
+                    Log.Error(e, "Error parsing data: " + msg);
+                    return;
                 }
-                finally
+
+                if (_dashboardActive)
                 {
-                    _stream.Close();
-                    _client.Close();
-                    await saveTask;
-                    Log.Information("Waiting 5 seconds and then attempting to re-connect...");
-                    await Task.Delay(5000);
+                    _dashUpdates.Add(data);
+                    if (_firstDashUpdate)
+                    {
+                        var update = data.ToHostDeltas();
+                        foreach (var d in update)
+                        {
+                            d.LastCheckDeltaBytes /= DateTime.Now.Subtract(_lastGatheredSave).Seconds;
+                        }
+                        DashboardGatherTask.DataGathered?.Invoke(null, new DashboardEventArgs(
+                            update, _updateFrequencySeconds * 1000));
+                        _firstDashUpdate = false;
+                    }
+                    else
+                    {
+                        var elapsedMs = DateTime.Now.Subtract(_lastGatheredDash).TotalMilliseconds;
+                        var deltas = data.ToHostDeltas();
+                        DashboardGatherTask.DataGathered?.Invoke(null, new DashboardEventArgs(
+                            deltas, elapsedMs));
+                    }
+                    _lastGatheredDash = DateTime.Now;
                 }
+                if (!_dashboardActive || DateTime.Now.Subtract(_lastGatheredSave).Seconds >= _saveTime.TotalSeconds)
+                {
+                    var dash = _dashUpdates.SelectMany(d => d.ToTrafficStats());
+                    var ts = data.ToTrafficStats().ToList();
+                    if (dash.Any())
+                    {
+                        foreach (var t in ts)
+                        {
+                            var dashInfo = dash.Where(d => d.Ip == t.Ip);
+                            t.In += dashInfo.Sum(d => d.In);
+                            t.Out += dashInfo.Sum(d => d.Out);
+                        }
+                        _dashUpdates.Clear();
+                    }
+
+                    _saveTask = UpdateDatabase(ts);
+                    _lastGatheredSave = DateTime.Now;
+                    if (_deltas.Count == 30)
+                    {
+                        _deltas.RemoveAt(0);
+                    }
+                    _deltas.Add(ts.Sum(t => t.In + t.Out));
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Fatal(e, "Error on Dscs data gather.");
+                _stream?.Close();
+                _client?.Close();
+            }
+            finally
+            {
+                await _saveTask;
             }
         }
 
@@ -175,14 +176,30 @@ namespace DarkStatsCore.Data
         private TcpClient Connect()
         {
             var uri = new Uri(_url);
-            return new TcpClient(uri.Host, uri.Port);
+            var client = new TcpClient(uri.Host, uri.Port)
+            {
+                SendTimeout = _updateFrequencySeconds * 1000,
+                ReceiveTimeout = _updateFrequencySeconds * 1000
+            };
+            return client;
         }
 
         private void UpdateFrequency(int seconds)
         {
             _updateFrequencySeconds = seconds;
-            _client.SendTimeout = seconds * 1000;
-            _client.ReceiveTimeout = seconds * 1000;
+            if (_client != null)
+            {
+                _client.SendTimeout = seconds * 1000;
+                _client.ReceiveTimeout = seconds * 1000;
+            }
+            if (_dataCheckTimer == null)
+            {
+                _dataCheckTimer = new Timer(async (s) => await RetrieveData(), null, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(seconds));
+            }
+            else
+            {
+                _dataCheckTimer.Change(TimeSpan.FromSeconds(seconds), TimeSpan.FromSeconds(seconds));
+            }
         }
 
         public override ValidationResult Test()
