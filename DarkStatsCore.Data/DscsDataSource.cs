@@ -42,6 +42,7 @@ namespace DarkStatsCore.Data
                     Thread.Sleep(Convert.ToInt32(refreshTime.TotalMilliseconds));
                 }
                 _dashboardActive = false;
+                _firstDashUpdate = true;
                 UpdateFrequency(lastFrequency);
             });
         }
