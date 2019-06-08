@@ -170,7 +170,7 @@ namespace DarkStatsCore.Data
                 }
                 await db.SaveChangesAsync();
                 DataGatherTask.ScrapeSaved?.Invoke(null, EventArgs.Empty);
-                Log.Information("Dscs: Saved.");
+                Log.Debug("Dscs: Saved.");
             }
         }
 
@@ -182,6 +182,7 @@ namespace DarkStatsCore.Data
                 SendTimeout = _updateFrequencySeconds * 1000,
                 ReceiveTimeout = _updateFrequencySeconds * 1000
             };
+            Log.Information("DSCS connected.");
             return client;
         }
 

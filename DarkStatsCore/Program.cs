@@ -6,23 +6,37 @@ using DarkStatsCore.Data;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
+using Serilog.Core;
 
 namespace DarkStatsCore
 {
     public class Program
     {
         public static bool DisplayMiniProfiler { get; internal set; }
+        public static LoggingLevelSwitch LoggingLevel = new LoggingLevelSwitch();
         private static string _listenUrl = "http://*:6677";
         
         public static int Main(string[] args)
         {
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
+            var buildLogger = new LoggerConfiguration()
+                .MinimumLevel.ControlledBy(LoggingLevel)
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                 .Enrich.FromLogContext()
-                .WriteTo.Console(theme: AnsiConsoleTheme.Code, standardErrorFromLevel: LogEventLevel.Warning)
-                .CreateLogger();
+                .WriteTo.Console(theme: AnsiConsoleTheme.Code, standardErrorFromLevel: LogEventLevel.Warning);
+            var seqhost = Environment.GetEnvironmentVariable("SEQ_HOST");
+            var seqkey = Environment.GetEnvironmentVariable("SEQ_KEY");
+            if (!string.IsNullOrEmpty(seqhost))
+            {
+                buildLogger.WriteTo.Seq(seqhost, apiKey: seqkey, compact: true);
+            }
+            Log.Logger = buildLogger.CreateLogger();
             Serilog.Debugging.SelfLog.Enable(Console.Error);
+
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DEBUG")))
+            {
+                Log.Information("Enabling debug logging...");
+                LoggingLevel.MinimumLevel = LogEventLevel.Debug;
+            }
 
             try
             {
