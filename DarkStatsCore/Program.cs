@@ -32,12 +32,6 @@ namespace DarkStatsCore
             Log.Logger = buildLogger.CreateLogger();
             Serilog.Debugging.SelfLog.Enable(Console.Error);
 
-            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DEBUG")))
-            {
-                Log.Information("Enabling debug logging...");
-                LoggingLevel.MinimumLevel = LogEventLevel.Debug;
-            }
-
             try
             {
                 if (args.Length == 1)

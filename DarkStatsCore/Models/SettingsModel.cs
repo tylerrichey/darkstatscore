@@ -13,4 +13,5 @@ public class SettingsModel
     [Range(100, 5000)]
     public double DashboardRefreshTime { get; set; }
     public bool DisplayMiniProfiler { get; set; }
+    public bool DebugLogging { get; set; }
 }

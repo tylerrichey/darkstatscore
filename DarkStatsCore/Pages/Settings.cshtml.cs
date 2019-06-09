@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using DarkStatsCore.Data;
+using Serilog.Events;
 
 namespace DarkStatsCore.Pages
 {
@@ -38,6 +39,7 @@ namespace DarkStatsCore.Pages
             _settings.SetDashboardRefreshTime(SettingsModel.DashboardRefreshTime);
             _settings.SetUrl(SettingsModel.Url);
             Program.DisplayMiniProfiler = SettingsModel.DisplayMiniProfiler;
+            Program.LoggingLevel.MinimumLevel = SettingsModel.DebugLogging ? LogEventLevel.Debug : LogEventLevel.Information;
             if (oldSaveTime != _settings.SaveTime || DataGatherTask.DataSource == null)
             {
                 DataGatherTask.StartDataGatherTask(_settings.SaveTime, _settings.Url);
