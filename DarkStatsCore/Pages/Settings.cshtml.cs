@@ -23,7 +23,8 @@ namespace DarkStatsCore.Pages
                 Url = _settings.Url,
                 SaveTime = (int)_settings.SaveTime.TotalSeconds,
                 DashboardRefreshTime = _settings.DashboardRefreshTime.TotalMilliseconds,
-                DisplayMiniProfiler = Program.DisplayMiniProfiler
+                DisplayMiniProfiler = Program.DisplayMiniProfiler,
+                DebugLogging = Program.LoggingLevel.MinimumLevel == LogEventLevel.Debug
             };
         }
 

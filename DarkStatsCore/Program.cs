@@ -43,6 +43,7 @@ namespace DarkStatsCore
                 using (var context = new DarkStatsDbContext())
                 {
                     context.Database.Migrate();
+                    context.Database.ExecuteSqlCommand("VACUUM;");
                     var settings = new SettingsLib(context);
                     if (!settings.InvalidSettings)
                     {

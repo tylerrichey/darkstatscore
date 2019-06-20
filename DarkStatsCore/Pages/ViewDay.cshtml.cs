@@ -33,11 +33,10 @@ namespace DarkStatsCore.Pages
 
         private IEnumerable<DayDataModel> GetDayData(int month, int year, int day)
         {
-            var dayRequested = new DateTime(year, month, day);
             using (MiniProfiler.Current.Step("GetDayData"))
             {
                 return _context.TrafficStats
-                            .Where(t => dayRequested == new DateTime(t.Day.Year, t.Day.Month, t.Day.Day))
+                            .Where(t => t.Day.Year == year && t.Day.Month == month && t.Day.Day == day)
                             .GroupBy(t => t.Day)
                             .Select(t => new DayDataModel
                             {

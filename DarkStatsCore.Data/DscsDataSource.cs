@@ -160,7 +160,7 @@ namespace DarkStatsCore.Data
                         exists.Out += h.Out;
                         exists.LastSeen = h.LastSeen;
                         exists.Hostname = h.Hostname;
-                        exists.Mac = h.Mac;
+                        //exists.Mac = h.Mac;
                         db.Update(exists);
                     }
                     else
