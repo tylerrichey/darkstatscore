@@ -8,7 +8,7 @@
     "chartist-plugin-tooltips": "0.0.17",
     "components-jqueryui": "^1.12.1",
     "jquery": "^3.2.1",
-    "jquery-validation": "^1.17.0",
+    "jquery-validation": "^1.19.3",
     "jquery-validation-unobtrusive": "^3.2.6"
   },
   "repository": {
